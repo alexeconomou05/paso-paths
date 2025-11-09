@@ -1,17 +1,20 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Briefcase, MapPin, DollarSign, User, LogOut } from "lucide-react";
+import { Briefcase, MapPin, DollarSign, User, LogOut, X } from "lucide-react";
 
 const Jobs = () => {
   const navigate = useNavigate();
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
+  const [selectedLocation, setSelectedLocation] = useState<string>("all");
+  const [selectedEmploymentType, setSelectedEmploymentType] = useState<string>("all");
 
   useEffect(() => {
     checkAuth();
@@ -61,6 +64,26 @@ const Jobs = () => {
     navigate('/');
   };
 
+  const uniqueLocations = useMemo(() => {
+    const locations = jobs.map(job => job.location).filter(Boolean);
+    return Array.from(new Set(locations)).sort();
+  }, [jobs]);
+
+  const filteredJobs = useMemo(() => {
+    return jobs.filter(job => {
+      const locationMatch = selectedLocation === "all" || job.location === selectedLocation;
+      const employmentMatch = selectedEmploymentType === "all" || job.employment_type === selectedEmploymentType;
+      return locationMatch && employmentMatch;
+    });
+  }, [jobs, selectedLocation, selectedEmploymentType]);
+
+  const hasActiveFilters = selectedLocation !== "all" || selectedEmploymentType !== "all";
+
+  const resetFilters = () => {
+    setSelectedLocation("all");
+    setSelectedEmploymentType("all");
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b">
@@ -97,21 +120,67 @@ const Jobs = () => {
           </p>
         </div>
 
+        <div className="mb-6 flex flex-wrap gap-4 items-end">
+          <div className="flex-1 min-w-[200px]">
+            <label className="text-sm font-medium mb-2 block">Location</label>
+            <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+              <SelectTrigger>
+                <SelectValue placeholder="All locations" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All locations</SelectItem>
+                {uniqueLocations.map((location) => (
+                  <SelectItem key={location} value={location}>
+                    {location}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex-1 min-w-[200px]">
+            <label className="text-sm font-medium mb-2 block">Employment Type</label>
+            <Select value={selectedEmploymentType} onValueChange={setSelectedEmploymentType}>
+              <SelectTrigger>
+                <SelectValue placeholder="All types" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All types</SelectItem>
+                <SelectItem value="internship">Internship</SelectItem>
+                <SelectItem value="part_time">Part Time</SelectItem>
+                <SelectItem value="full_time">Full Time</SelectItem>
+                <SelectItem value="graduate_program">Graduate Program</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {hasActiveFilters && (
+            <Button variant="outline" onClick={resetFilters}>
+              <X className="w-4 h-4 mr-2" />
+              Clear Filters
+            </Button>
+          )}
+        </div>
+
         {loading ? (
           <div className="text-center py-12">
             <p className="text-muted-foreground">Loading opportunities...</p>
           </div>
-        ) : jobs.length === 0 ? (
+        ) : filteredJobs.length === 0 ? (
           <Card className="text-center py-12">
             <CardContent>
               <Briefcase className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-xl font-bold mb-2">No jobs available yet</h3>
-              <p className="text-muted-foreground">Check back soon for new opportunities!</p>
+              <h3 className="text-xl font-bold mb-2">
+                {jobs.length === 0 ? "No jobs available yet" : "No jobs match your filters"}
+              </h3>
+              <p className="text-muted-foreground">
+                {jobs.length === 0 ? "Check back soon for new opportunities!" : "Try adjusting your filters to see more results"}
+              </p>
             </CardContent>
           </Card>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {jobs.map((job) => (
+            {filteredJobs.map((job) => (
               <Card 
                 key={job.id} 
                 className="hover:shadow-lg transition-shadow cursor-pointer"
