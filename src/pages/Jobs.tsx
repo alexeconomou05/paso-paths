@@ -86,10 +86,10 @@ const Jobs = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b">
+      <header className="border-b-4 border-foreground/10 bg-gradient-to-r from-primary/5 to-accent/5">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-primary cursor-pointer" onClick={() => navigate('/')}>
-            Career Platform
+          <h1 className="text-2xl font-bold text-primary cursor-pointer hover:scale-110 hover:animate-wiggle transition-transform" onClick={() => navigate('/')}>
+            🚀 Career Platform
           </h1>
           <div className="flex gap-2">
             {user ? (
@@ -113,18 +113,20 @@ const Jobs = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2">Available Opportunities</h2>
+        <div className="mb-8 animate-slide-up">
+          <h2 className="text-3xl font-bold mb-2 hover:scale-105 transition-transform inline-block">
+            Available Opportunities 🎯
+          </h2>
           <p className="text-muted-foreground">
             Browse internships, part-time jobs, and graduate programs for students
           </p>
         </div>
 
-        <div className="mb-6 flex flex-wrap gap-4 items-end">
-          <div className="flex-1 min-w-[200px]">
-            <label className="text-sm font-medium mb-2 block">Location</label>
+        <div className="mb-6 flex flex-wrap gap-4 items-end animate-slide-up" style={{ animationDelay: '0.1s' }}>
+          <div className="flex-1 min-w-[200px] group">
+            <label className="text-sm font-medium mb-2 block group-hover:text-primary transition-colors">📍 Location</label>
             <Select value={selectedLocation} onValueChange={setSelectedLocation}>
-              <SelectTrigger>
+              <SelectTrigger className="hover:border-primary transition-colors">
                 <SelectValue placeholder="All locations" />
               </SelectTrigger>
               <SelectContent>
@@ -138,10 +140,10 @@ const Jobs = () => {
             </Select>
           </div>
 
-          <div className="flex-1 min-w-[200px]">
-            <label className="text-sm font-medium mb-2 block">Employment Type</label>
+          <div className="flex-1 min-w-[200px] group">
+            <label className="text-sm font-medium mb-2 block group-hover:text-primary transition-colors">💼 Employment Type</label>
             <Select value={selectedEmploymentType} onValueChange={setSelectedEmploymentType}>
-              <SelectTrigger>
+              <SelectTrigger className="hover:border-primary transition-colors">
                 <SelectValue placeholder="All types" />
               </SelectTrigger>
               <SelectContent>
@@ -155,7 +157,7 @@ const Jobs = () => {
           </div>
 
           {hasActiveFilters && (
-            <Button variant="outline" onClick={resetFilters}>
+            <Button variant="outline" onClick={resetFilters} className="animate-bounce-in">
               <X className="w-4 h-4 mr-2" />
               Clear Filters
             </Button>
@@ -180,19 +182,20 @@ const Jobs = () => {
           </Card>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredJobs.map((job) => (
+            {filteredJobs.map((job, index) => (
               <Card 
                 key={job.id} 
-                className="hover:shadow-lg transition-shadow cursor-pointer"
+                className="hover:scale-105 hover:-rotate-1 transition-all duration-300 cursor-pointer animate-bounce-in group"
+                style={{ animationDelay: `${index * 0.1}s` }}
                 onClick={() => navigate(`/jobs/${job.id}`)}
               >
                 <CardHeader>
                   <div className="flex items-start justify-between mb-2">
-                    <Badge variant={getEmploymentBadgeVariant(job.employment_type)}>
+                    <Badge variant={getEmploymentBadgeVariant(job.employment_type)} className="animate-wiggle hover:animate-pop">
                       {formatEmploymentType(job.employment_type)}
                     </Badge>
                   </div>
-                  <CardTitle className="text-xl">{job.job_title}</CardTitle>
+                  <CardTitle className="text-xl group-hover:text-primary transition-colors">{job.job_title}</CardTitle>
                   <CardDescription className="font-medium">
                     {job.employer_name}
                   </CardDescription>
@@ -200,23 +203,23 @@ const Jobs = () => {
                 <CardContent>
                   <div className="space-y-2 text-sm">
                     {job.location && (
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <MapPin className="w-4 h-4" />
+                      <div className="flex items-center gap-2 text-muted-foreground group-hover:text-foreground transition-colors">
+                        <MapPin className="w-4 h-4 group-hover:animate-bounce" />
                         <span>{job.location}</span>
                       </div>
                     )}
                     {job.salary_range && (
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <DollarSign className="w-4 h-4" />
+                      <div className="flex items-center gap-2 text-muted-foreground group-hover:text-foreground transition-colors">
+                        <DollarSign className="w-4 h-4 group-hover:animate-bounce" />
                         <span>{job.salary_range}</span>
                       </div>
                     )}
-                    <p className="text-muted-foreground line-clamp-3 mt-3">
+                    <p className="text-muted-foreground line-clamp-3 mt-3 group-hover:text-foreground transition-colors">
                       {job.job_description}
                     </p>
                   </div>
-                  <Button className="w-full mt-4" variant="outline">
-                    View Details
+                  <Button className="w-full mt-4 group-hover:animate-wiggle" variant="outline">
+                    View Details ✨
                   </Button>
                 </CardContent>
               </Card>
