@@ -36,7 +36,7 @@ All colors MUST be HSL.
     --input: 40 32% 91%;
     --ring: 33 95% 55%;
 
-    --radius: 0.5rem;
+    --radius: 1.25rem;
     
     --success: 142 71% 45%;
     --success-foreground: 0 0% 100%;
@@ -44,12 +44,12 @@ All colors MUST be HSL.
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
     
-    --gradient-hero: linear-gradient(135deg, hsl(33 95% 55%) 0%, hsl(33 95% 45%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(33 95% 60%) 0%, hsl(45 95% 55%) 100%);
     --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(45 90% 98%) 100%);
     
-    --shadow-soft: 0 2px 8px hsla(33, 95%, 55%, 0.08);
-    --shadow-medium: 0 4px 16px hsla(33, 95%, 55%, 0.12);
-    --shadow-strong: 0 8px 32px hsla(33, 95%, 55%, 0.16);
+    --shadow-soft: 4px 4px 0px hsla(25, 47%, 11%, 0.15);
+    --shadow-medium: 6px 6px 0px hsla(25, 47%, 11%, 0.2);
+    --shadow-strong: 8px 8px 0px hsla(25, 47%, 11%, 0.25);
 
     --sidebar-background: 0 0% 98%;
 
@@ -120,5 +120,24 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', cursive, sans-serif;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  
+  button {
+    font-weight: 700;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  button:hover {
+    transform: translateY(-2px);
+  }
+  
+  button:active {
+    transform: translateY(1px);
   }
 }
