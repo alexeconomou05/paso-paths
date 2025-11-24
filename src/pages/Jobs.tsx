@@ -1,57 +1,101 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { MapPin, DollarSign, Briefcase, GraduationCap, Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import { Briefcase, MapPin, DollarSign, User, LogOut, X } from "lucide-react";
+import Logo from "@/components/Logo";
 
 const Jobs = () => {
   const navigate = useNavigate();
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
-  const [selectedLocation, setSelectedLocation] = useState<string>("all");
-  const [selectedEmploymentType, setSelectedEmploymentType] = useState<string>("all");
+  const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState<any>(null);
+  const [activeView, setActiveView] = useState<"studies" | "dream">("studies");
 
   useEffect(() => {
-    checkAuth();
-    fetchJobs();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchProfile(session.user.id);
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchProfile(session.user.id);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const checkAuth = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    setUser(user);
+  const fetchProfile = async (userId: string) => {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", userId)
+      .single();
+
+    if (error) {
+      console.error("Error fetching profile:", error);
+    } else {
+      setProfile(data);
+    }
   };
+
+  useEffect(() => {
+    fetchJobs();
+  }, []);
 
   const fetchJobs = async () => {
     try {
       const { data, error } = await supabase
-        .from('job_postings')
-        .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
+        .from("job_postings")
+        .select("*")
+        .eq("is_active", true)
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       setJobs(data || []);
-    } catch (error: any) {
+    } catch (error) {
+      console.error("Error fetching jobs:", error);
       toast.error("Failed to load jobs");
     } finally {
       setLoading(false);
     }
   };
 
-  const getEmploymentBadgeVariant = (type: string) => {
-    switch(type) {
-      case 'internship': return 'default';
-      case 'part_time': return 'secondary';
-      case 'full_time': return 'outline';
-      case 'graduate_program': return 'outline';
-      default: return 'default';
-    }
-  };
+  const isVerified = profile?.verification_status === "approved";
+  const hasCompletedProfile = profile?.field_of_study && profile?.bio;
+
+  if (!user) {
+    navigate("/auth");
+    return null;
+  }
+
+  if (!isVerified || !hasCompletedProfile) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10 flex items-center justify-center p-4">
+        <Card className="glass-card p-8 max-w-md text-center">
+          <div className="text-6xl mb-4">🔒</div>
+          <h2 className="text-2xl font-bold mb-4">Complete Your Profile</h2>
+          <p className="text-foreground/70 mb-6">
+            {!isVerified && "Please verify your student status and "}
+            {!hasCompletedProfile && "complete your profile with your field of study and skills "}
+            to access personalized job recommendations.
+          </p>
+          <Button onClick={() => navigate("/profile")} className="bg-cta hover:bg-cta/90 text-cta-foreground">
+            Go to Profile
+          </Button>
+        </Card>
+      </div>
+    );
+  }
 
   const formatEmploymentType = (type: string) => {
     return type.split('_').map(word => 
@@ -59,174 +103,130 @@ const Jobs = () => {
     ).join(' ');
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate('/');
-  };
-
-  const uniqueLocations = useMemo(() => {
-    const locations = jobs.map(job => job.location).filter(Boolean);
-    return Array.from(new Set(locations)).sort();
-  }, [jobs]);
-
-  const filteredJobs = useMemo(() => {
-    return jobs.filter(job => {
-      const locationMatch = selectedLocation === "all" || job.location === selectedLocation;
-      const employmentMatch = selectedEmploymentType === "all" || job.employment_type === selectedEmploymentType;
-      return locationMatch && employmentMatch;
-    });
-  }, [jobs, selectedLocation, selectedEmploymentType]);
-
-  const hasActiveFilters = selectedLocation !== "all" || selectedEmploymentType !== "all";
-
-  const resetFilters = () => {
-    setSelectedLocation("all");
-    setSelectedEmploymentType("all");
-  };
-
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b-4 border-foreground/10 bg-gradient-to-r from-primary/5 to-accent/5">
+    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10">
+      {/* Header */}
+      <header className="glass border-b border-glass-border sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-primary cursor-pointer hover:scale-110 hover:animate-wiggle transition-transform" onClick={() => navigate('/')}>
-            🚀 Career Platform
-          </h1>
-          <div className="flex gap-2">
-            {user ? (
-              <>
-                <Button variant="outline" onClick={() => navigate('/profile')}>
-                  <User className="mr-2 w-4 h-4" />
-                  Profile
-                </Button>
-                <Button variant="outline" onClick={handleLogout}>
-                  <LogOut className="mr-2 w-4 h-4" />
-                  Logout
-                </Button>
-              </>
-            ) : (
-              <Button onClick={() => navigate('/auth')}>
-                Sign In
-              </Button>
-            )}
+          <div onClick={() => navigate("/")} className="cursor-pointer">
+            <Logo className="text-3xl" />
           </div>
+          <Button 
+            variant="ghost" 
+            onClick={() => navigate("/profile")}
+            className="font-semibold"
+          >
+            Profile
+          </Button>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-8 animate-slide-up">
-          <h2 className="text-3xl font-bold mb-2 hover:scale-105 transition-transform inline-block">
-            Available Opportunities 🎯
-          </h2>
-          <p className="text-muted-foreground">
-            Browse internships, part-time jobs, and graduate programs for students
-          </p>
+      <div className="container mx-auto px-4 py-8">
+        {/* Title */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl md:text-5xl font-extrabold mb-3 bg-gradient-to-r from-primary via-cta to-accent bg-clip-text text-transparent">
+            Your Personalized Opportunities
+          </h1>
+          <p className="text-lg text-foreground/70">Choose your path</p>
         </div>
 
-        <div className="mb-6 flex flex-wrap gap-4 items-end animate-slide-up" style={{ animationDelay: '0.1s' }}>
-          <div className="flex-1 min-w-[200px] group">
-            <label className="text-sm font-medium mb-2 block group-hover:text-primary transition-colors">📍 Location</label>
-            <Select value={selectedLocation} onValueChange={setSelectedLocation}>
-              <SelectTrigger className="hover:border-primary transition-colors">
-                <SelectValue placeholder="All locations" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All locations</SelectItem>
-                {uniqueLocations.map((location) => (
-                  <SelectItem key={location} value={location}>
-                    {location}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        {/* Two Pillar Toggle */}
+        <div className="flex gap-4 max-w-2xl mx-auto mb-8">
+          <Button
+            onClick={() => setActiveView("studies")}
+            className={`flex-1 h-auto py-6 px-6 rounded-2xl transition-all duration-300 ${
+              activeView === "studies"
+                ? "bg-gradient-to-br from-primary to-cta text-white shadow-strong scale-105"
+                : "glass-card hover:scale-102"
+            }`}
+          >
+            <div className="flex flex-col items-center gap-2">
+              <GraduationCap className="w-8 h-8" />
+              <span className="font-bold text-lg">Based on Studies</span>
+            </div>
+          </Button>
 
-          <div className="flex-1 min-w-[200px] group">
-            <label className="text-sm font-medium mb-2 block group-hover:text-primary transition-colors">💼 Employment Type</label>
-            <Select value={selectedEmploymentType} onValueChange={setSelectedEmploymentType}>
-              <SelectTrigger className="hover:border-primary transition-colors">
-                <SelectValue placeholder="All types" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All types</SelectItem>
-                <SelectItem value="internship">Internship</SelectItem>
-                <SelectItem value="part_time">Part Time</SelectItem>
-                <SelectItem value="full_time">Full Time</SelectItem>
-                <SelectItem value="graduate_program">Graduate Program</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {hasActiveFilters && (
-            <Button variant="outline" onClick={resetFilters} className="animate-bounce-in">
-              <X className="w-4 h-4 mr-2" />
-              Clear Filters
-            </Button>
-          )}
+          <Button
+            onClick={() => setActiveView("dream")}
+            className={`flex-1 h-auto py-6 px-6 rounded-2xl transition-all duration-300 ${
+              activeView === "dream"
+                ? "bg-gradient-to-br from-accent to-primary text-white shadow-strong scale-105"
+                : "glass-card hover:scale-102"
+            }`}
+          >
+            <div className="flex flex-col items-center gap-2">
+              <Sparkles className="w-8 h-8" />
+              <span className="font-bold text-lg">Dream Role</span>
+            </div>
+          </Button>
         </div>
 
+        {/* Jobs Grid */}
         {loading ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">Loading opportunities...</p>
+          <div className="text-center py-20">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
           </div>
-        ) : filteredJobs.length === 0 ? (
-          <Card className="text-center py-12">
-            <CardContent>
-              <Briefcase className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-xl font-bold mb-2">
-                {jobs.length === 0 ? "No jobs available yet" : "No jobs match your filters"}
-              </h3>
-              <p className="text-muted-foreground">
-                {jobs.length === 0 ? "Check back soon for new opportunities!" : "Try adjusting your filters to see more results"}
-              </p>
-            </CardContent>
-          </Card>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredJobs.map((job, index) => (
-              <Card 
-                key={job.id} 
-                className="hover:scale-105 hover:-rotate-1 transition-all duration-300 cursor-pointer animate-bounce-in group"
-                style={{ animationDelay: `${index * 0.1}s` }}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
+            {jobs.map((job, index) => (
+              <Card
+                key={job.id}
+                className="glass-card p-6 cursor-pointer group hover:scale-105 hover:-rotate-1 transition-all duration-300 animate-slide-up border-l-4 border-primary"
+                style={{ animationDelay: `${index * 100}ms` }}
                 onClick={() => navigate(`/jobs/${job.id}`)}
               >
-                <CardHeader>
-                  <div className="flex items-start justify-between mb-2">
-                    <Badge variant={getEmploymentBadgeVariant(job.employment_type)} className="animate-wiggle hover:animate-pop">
-                      {formatEmploymentType(job.employment_type)}
-                    </Badge>
-                  </div>
-                  <CardTitle className="text-xl group-hover:text-primary transition-colors">{job.job_title}</CardTitle>
-                  <CardDescription className="font-medium">
-                    {job.employer_name}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 text-sm">
-                    {job.location && (
-                      <div className="flex items-center gap-2 text-muted-foreground group-hover:text-foreground transition-colors">
-                        <MapPin className="w-4 h-4 group-hover:animate-bounce" />
-                        <span>{job.location}</span>
-                      </div>
-                    )}
-                    {job.salary_range && (
-                      <div className="flex items-center gap-2 text-muted-foreground group-hover:text-foreground transition-colors">
-                        <DollarSign className="w-4 h-4 group-hover:animate-bounce" />
-                        <span>{job.salary_range}</span>
-                      </div>
-                    )}
-                    <p className="text-muted-foreground line-clamp-3 mt-3 group-hover:text-foreground transition-colors">
-                      {job.job_description}
-                    </p>
-                  </div>
-                  <Button className="w-full mt-4 group-hover:animate-wiggle" variant="outline">
-                    View Details ✨
-                  </Button>
-                </CardContent>
+                <div className="flex justify-between items-start mb-4">
+                  <h3 className="text-xl font-bold group-hover:text-primary transition-colors">
+                    {job.job_title}
+                  </h3>
+                  <Badge className="animate-wiggle bg-accent hover:bg-accent text-accent-foreground rounded-full px-3 py-1">
+                    {formatEmploymentType(job.employment_type)}
+                  </Badge>
+                </div>
+
+                <p className="text-sm font-semibold text-foreground/80 mb-3">{job.employer_name}</p>
+
+                <p className="text-foreground/70 mb-4 line-clamp-3 group-hover:text-foreground transition-colors">
+                  {job.job_description}
+                </p>
+
+                <div className="space-y-2 mb-4">
+                  {job.location && (
+                    <div className="flex items-center gap-2 text-sm text-foreground/70">
+                      <MapPin className="w-4 h-4 text-primary group-hover:animate-bounce" />
+                      <span>{job.location}</span>
+                    </div>
+                  )}
+                  {job.salary_range && (
+                    <div className="flex items-center gap-2 text-sm text-foreground/70">
+                      <DollarSign className="w-4 h-4 text-accent group-hover:animate-bounce" />
+                      <span>{job.salary_range}</span>
+                    </div>
+                  )}
+                </div>
+
+                <Button 
+                  className="w-full bg-cta hover:bg-cta/90 text-cta-foreground font-semibold animate-wiggle group-hover:scale-105"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/jobs/${job.id}`);
+                  }}
+                >
+                  <Briefcase className="w-4 h-4 mr-2" />
+                  View Details
+                </Button>
               </Card>
             ))}
           </div>
         )}
-      </main>
+
+        {!loading && jobs.length === 0 && (
+          <div className="text-center py-20">
+            <div className="text-6xl mb-4">🔍</div>
+            <p className="text-xl text-foreground/70">No jobs available at the moment</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
