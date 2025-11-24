@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { User, Upload, FileText, LogOut, Briefcase } from "lucide-react";
+import Logo from "@/components/Logo";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -107,6 +108,7 @@ const Profile = () => {
           field_of_study: profile.field_of_study,
           graduation_year: profile.graduation_year,
           bio: profile.bio,
+          career_interests: profile.career_interests,
           photo_url: photoUrl,
           cv_url: cvUrl
         })
@@ -132,12 +134,12 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b">
+    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10">
+      <header className="glass border-b border-glass-border sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-primary cursor-pointer" onClick={() => navigate('/')}>
-            Career Platform
-          </h1>
+          <div onClick={() => navigate("/")} className="cursor-pointer">
+            <Logo className="text-3xl" />
+          </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => navigate('/jobs')}>
               <Briefcase className="mr-2 w-4 h-4" />
@@ -152,11 +154,11 @@ const Profile = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8 max-w-3xl">
-        <Card>
+        <Card className="glass-card">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center backdrop-blur-sm">
                   <User className="w-6 h-6 text-primary" />
                 </div>
                 <div>
@@ -224,14 +226,28 @@ const Profile = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="bio">Bio</Label>
+                <Label htmlFor="bio">Bio & Skills</Label>
                 <Textarea
                   id="bio"
-                  placeholder="Tell employers about yourself, your skills, and career goals..."
-                  rows={4}
+                  placeholder="Tell employers about yourself and your technical skills..."
+                  rows={3}
                   value={profile?.bio || ''}
                   onChange={(e) => setProfile({...profile, bio: e.target.value})}
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="careerInterests">Dream Role & Career Interests</Label>
+                <Textarea
+                  id="careerInterests"
+                  placeholder="Describe your ideal job role, industry interests, and career aspirations (e.g., 'UX Designer at a tech startup', 'Data Scientist in healthcare')..."
+                  rows={3}
+                  value={profile?.career_interests || ''}
+                  onChange={(e) => setProfile({...profile, career_interests: e.target.value})}
+                />
+                <p className="text-xs text-muted-foreground">
+                  💡 This helps us recommend jobs that match your career goals
+                </p>
               </div>
 
               <div className="space-y-2">

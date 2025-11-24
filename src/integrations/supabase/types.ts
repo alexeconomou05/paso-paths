@@ -104,6 +104,7 @@ export type Database = {
       profiles: {
         Row: {
           bio: string | null
+          career_interests: string | null
           created_at: string
           cv_url: string | null
           email: string
@@ -114,6 +115,7 @@ export type Database = {
           paso_document_url: string | null
           paso_number: string | null
           photo_url: string | null
+          preferred_employment_types: string[] | null
           university: string | null
           updated_at: string
           verification_status:
@@ -122,6 +124,7 @@ export type Database = {
         }
         Insert: {
           bio?: string | null
+          career_interests?: string | null
           created_at?: string
           cv_url?: string | null
           email: string
@@ -132,6 +135,7 @@ export type Database = {
           paso_document_url?: string | null
           paso_number?: string | null
           photo_url?: string | null
+          preferred_employment_types?: string[] | null
           university?: string | null
           updated_at?: string
           verification_status?:
@@ -140,6 +144,7 @@ export type Database = {
         }
         Update: {
           bio?: string | null
+          career_interests?: string | null
           created_at?: string
           cv_url?: string | null
           email?: string
@@ -150,6 +155,7 @@ export type Database = {
           paso_document_url?: string | null
           paso_number?: string | null
           photo_url?: string | null
+          preferred_employment_types?: string[] | null
           university?: string | null
           updated_at?: string
           verification_status?:
