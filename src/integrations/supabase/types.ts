@@ -62,6 +62,7 @@ export type Database = {
           employer_email: string
           employer_name: string
           employment_type: Database["public"]["Enums"]["employment_type"]
+          external_url: string | null
           id: string
           is_active: boolean | null
           job_description: string
@@ -76,6 +77,7 @@ export type Database = {
           employer_email: string
           employer_name: string
           employment_type: Database["public"]["Enums"]["employment_type"]
+          external_url?: string | null
           id?: string
           is_active?: boolean | null
           job_description: string
@@ -90,6 +92,7 @@ export type Database = {
           employer_email?: string
           employer_name?: string
           employment_type?: Database["public"]["Enums"]["employment_type"]
+          external_url?: string | null
           id?: string
           is_active?: boolean | null
           job_description?: string

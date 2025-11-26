@@ -226,7 +226,13 @@ const Jobs = () => {
                 key={job.id}
                 className="glass-card p-6 cursor-pointer group hover:scale-105 hover:-rotate-1 transition-all duration-300 animate-slide-up border-l-4 border-primary relative"
                 style={{ animationDelay: `${index * 100}ms` }}
-                onClick={() => navigate(`/jobs/${job.id}`)}
+                onClick={() => {
+                  if (job.external_url) {
+                    window.open(job.external_url, '_blank', 'noopener,noreferrer');
+                  } else {
+                    navigate(`/jobs/${job.id}`);
+                  }
+                }}
               >
                 {index < 3 && (
                   <div className="absolute -top-3 -right-3 bg-accent text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-strong">
@@ -268,11 +274,15 @@ const Jobs = () => {
                   className="w-full bg-cta hover:bg-cta/90 text-cta-foreground font-semibold animate-wiggle group-hover:scale-105"
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigate(`/jobs/${job.id}`);
+                    if (job.external_url) {
+                      window.open(job.external_url, '_blank', 'noopener,noreferrer');
+                    } else {
+                      navigate(`/jobs/${job.id}`);
+                    }
                   }}
                 >
                   <Briefcase className="w-4 h-4 mr-2" />
-                  View Details
+                  View Original
                 </Button>
               </Card>
             ))}
