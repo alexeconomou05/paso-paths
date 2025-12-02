@@ -8,14 +8,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Logo from "@/components/Logo";
-import { Upload, Mail, KeyRound, ArrowLeft, Loader2 } from "lucide-react";
+import { Upload, Mail, KeyRound, ArrowLeft, Loader2, Lock } from "lucide-react";
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 
-type AuthStep = 'credentials' | 'otp-verification';
+type AuthStep = 'credentials' | 'otp-verification' | 'forgot-password' | 'reset-otp' | 'new-password';
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -25,6 +25,8 @@ const Auth = () => {
   const [otpCode, setOtpCode] = useState("");
   const [pendingEmail, setPendingEmail] = useState("");
   const [pendingUserId, setPendingUserId] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   
   const [signupData, setSignupData] = useState({
     email: "",
@@ -39,6 +41,8 @@ const Auth = () => {
     email: "",
     password: ""
   });
+
+  const [forgotEmail, setForgotEmail] = useState("");
 
   const sendOTP = async (email: string) => {
     const { error } = await supabase.functions.invoke('send-otp', {
@@ -83,6 +87,74 @@ const Auth = () => {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      if (!forgotEmail) {
+        toast.error("Please enter your email");
+        return;
+      }
+
+      await sendOTP(forgotEmail);
+      setPendingEmail(forgotEmail);
+      setAuthStep('reset-otp');
+      toast.success("Verification code sent to your email");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to send reset code");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyResetOTP = async () => {
+    if (otpCode.length !== 6) {
+      toast.error("Please enter the complete code");
+      return;
+    }
+    setAuthStep('new-password');
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      if (newPassword.length < 6) {
+        toast.error("Password must be at least 6 characters");
+        return;
+      }
+
+      if (newPassword !== confirmPassword) {
+        toast.error("Passwords do not match");
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke('reset-password', {
+        body: { 
+          email: pendingEmail, 
+          otp: otpCode,
+          newPassword 
+        }
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      toast.success("Password updated! Please log in.");
+      setAuthStep('credentials');
+      setOtpCode("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setForgotEmail("");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to reset password");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -98,7 +170,6 @@ const Auth = () => {
         return;
       }
 
-      // Sign up user
       const { data: authData, error: signupError } = await supabase.auth.signUp({
         email: signupData.email,
         password: signupData.password,
@@ -113,7 +184,6 @@ const Auth = () => {
       if (signupError) throw signupError;
       if (!authData.user) throw new Error("No user data returned");
 
-      // Upload PASO document
       const fileExt = pasoFile.name.split('.').pop();
       const filePath = `${authData.user.id}/paso.${fileExt}`;
       
@@ -127,7 +197,6 @@ const Auth = () => {
         .from('paso-documents')
         .getPublicUrl(filePath);
 
-      // Update profile with additional info
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
@@ -140,7 +209,6 @@ const Auth = () => {
 
       if (updateError) throw updateError;
 
-      // Send OTP for email verification
       await sendOTP(signupData.email);
 
       setPendingEmail(signupData.email);
@@ -166,7 +234,6 @@ const Auth = () => {
 
       if (error) throw error;
 
-      // Check if email is verified
       const { data: profile } = await supabase
         .from('profiles')
         .select('email_verified')
@@ -174,7 +241,6 @@ const Auth = () => {
         .single();
 
       if (!profile?.email_verified) {
-        // Send OTP for verification
         await sendOTP(loginData.email);
         setPendingEmail(loginData.email);
         setPendingUserId(data.user.id);
@@ -191,7 +257,205 @@ const Auth = () => {
     }
   };
 
-  // OTP Verification Screen
+  const goBack = () => {
+    setAuthStep('credentials');
+    setOtpCode("");
+    setNewPassword("");
+    setConfirmPassword("");
+  };
+
+  // Forgot Password - Enter Email
+  if (authStep === 'forgot-password') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md glass-card animate-slide-up">
+          <CardHeader className="text-center">
+            <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Lock className="w-8 h-8 text-primary" />
+            </div>
+            <CardTitle className="text-2xl">Reset Password</CardTitle>
+            <CardDescription>
+              Enter your email address and we'll send you a verification code
+            </CardDescription>
+          </CardHeader>
+          
+          <CardContent>
+            <form onSubmit={handleForgotPassword} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="forgot-email">Email Address</Label>
+                <Input
+                  id="forgot-email"
+                  type="email"
+                  placeholder="your.email@university.gr"
+                  value={forgotEmail}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                  required
+                />
+              </div>
+              
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Mail className="w-4 h-4 mr-2" />
+                    Send Reset Code
+                  </>
+                )}
+              </Button>
+
+              <Button variant="ghost" className="w-full" onClick={goBack}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Login
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Reset OTP Verification
+  if (authStep === 'reset-otp') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md glass-card animate-slide-up">
+          <CardHeader className="text-center">
+            <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Mail className="w-8 h-8 text-primary" />
+            </div>
+            <CardTitle className="text-2xl">Enter Verification Code</CardTitle>
+            <CardDescription>
+              We've sent a 6-digit code to<br />
+              <span className="font-semibold text-foreground">{pendingEmail}</span>
+            </CardDescription>
+          </CardHeader>
+          
+          <CardContent className="space-y-6">
+            <div className="flex justify-center">
+              <InputOTP
+                maxLength={6}
+                value={otpCode}
+                onChange={(value) => setOtpCode(value)}
+              >
+                <InputOTPGroup>
+                  <InputOTPSlot index={0} />
+                  <InputOTPSlot index={1} />
+                  <InputOTPSlot index={2} />
+                  <InputOTPSlot index={3} />
+                  <InputOTPSlot index={4} />
+                  <InputOTPSlot index={5} />
+                </InputOTPGroup>
+              </InputOTP>
+            </div>
+
+            <Button 
+              onClick={handleVerifyResetOTP} 
+              className="w-full" 
+              disabled={otpCode.length !== 6}
+            >
+              <KeyRound className="w-4 h-4 mr-2" />
+              Continue
+            </Button>
+
+            <div className="text-center space-y-2">
+              <p className="text-sm text-muted-foreground">Didn't receive the code?</p>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={async () => {
+                  setLoading(true);
+                  try {
+                    await sendOTP(pendingEmail);
+                    toast.success("New code sent!");
+                  } catch {
+                    toast.error("Failed to resend");
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                disabled={loading}
+              >
+                Resend Code
+              </Button>
+            </div>
+
+            <Button variant="ghost" className="w-full" onClick={goBack}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Login
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // New Password Form
+  if (authStep === 'new-password') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md glass-card animate-slide-up">
+          <CardHeader className="text-center">
+            <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Lock className="w-8 h-8 text-primary" />
+            </div>
+            <CardTitle className="text-2xl">Set New Password</CardTitle>
+            <CardDescription>
+              Create a strong password for your account
+            </CardDescription>
+          </CardHeader>
+          
+          <CardContent>
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="new-password">New Password</Label>
+                <Input
+                  id="new-password"
+                  type="password"
+                  placeholder="At least 6 characters"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                  minLength={6}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirm-password">Confirm Password</Label>
+                <Input
+                  id="confirm-password"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                />
+              </div>
+              
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  "Update Password"
+                )}
+              </Button>
+
+              <Button variant="ghost" className="w-full" onClick={goBack}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Cancel
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // OTP Verification Screen (for signup/login)
   if (authStep === 'otp-verification') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10 flex items-center justify-center p-4">
@@ -244,9 +508,7 @@ const Auth = () => {
             </Button>
 
             <div className="text-center space-y-2">
-              <p className="text-sm text-muted-foreground">
-                Didn't receive the code?
-              </p>
+              <p className="text-sm text-muted-foreground">Didn't receive the code?</p>
               <Button 
                 variant="ghost" 
                 size="sm" 
@@ -257,14 +519,7 @@ const Auth = () => {
               </Button>
             </div>
 
-            <Button
-              variant="ghost"
-              className="w-full"
-              onClick={() => {
-                setAuthStep('credentials');
-                setOtpCode("");
-              }}
-            >
+            <Button variant="ghost" className="w-full" onClick={goBack}>
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Login
             </Button>
@@ -324,6 +579,14 @@ const Auth = () => {
                   ) : (
                     "Sign In"
                   )}
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="link" 
+                  className="w-full text-sm"
+                  onClick={() => setAuthStep('forgot-password')}
+                >
+                  Forgot your password?
                 </Button>
               </form>
             </TabsContent>
