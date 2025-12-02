@@ -56,6 +56,33 @@ export type Database = {
           },
         ]
       }
+      email_otps: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          otp_code: string
+          verified: boolean | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          otp_code: string
+          verified?: boolean | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          otp_code?: string
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
       job_postings: {
         Row: {
           created_at: string
@@ -111,6 +138,7 @@ export type Database = {
           created_at: string
           cv_url: string | null
           email: string
+          email_verified: boolean | null
           field_of_study: string | null
           full_name: string
           graduation_year: number | null
@@ -131,6 +159,7 @@ export type Database = {
           created_at?: string
           cv_url?: string | null
           email: string
+          email_verified?: boolean | null
           field_of_study?: string | null
           full_name: string
           graduation_year?: number | null
@@ -151,6 +180,7 @@ export type Database = {
           created_at?: string
           cv_url?: string | null
           email?: string
+          email_verified?: boolean | null
           field_of_study?: string | null
           full_name?: string
           graduation_year?: number | null
@@ -167,14 +197,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
+      app_role: "admin" | "user"
       application_status: "submitted" | "reviewing" | "accepted" | "rejected"
       employment_type:
         | "internship"
@@ -309,6 +367,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "user"],
       application_status: ["submitted", "reviewing", "accepted", "rejected"],
       employment_type: [
         "internship",
