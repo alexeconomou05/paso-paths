@@ -33,6 +33,13 @@ const JobDetail = () => {
         .single();
 
       if (jobError) throw jobError;
+      
+      // If job has external URL, redirect immediately
+      if (jobData.external_url) {
+        window.location.href = jobData.external_url;
+        return;
+      }
+      
       setJob(jobData);
 
       // Check if user is authenticated and fetch profile
