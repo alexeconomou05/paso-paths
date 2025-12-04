@@ -64,6 +64,7 @@ const handler = async (req: Request): Promise<Response> => {
     const { error: emailError } = await resend.emails.send({
       from: "GoHire <onboarding@resend.dev>",
       to: [email],
+      reply_to: 'gohire.info@gmail.com',
       subject: "Your GoHire Verification Code",
       html: `
         <!DOCTYPE html>
