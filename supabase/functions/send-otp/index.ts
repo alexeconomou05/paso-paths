@@ -1,8 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.80.0";
-import { Resend } from "https://esm.sh/resend@2.0.0";
-
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -60,42 +58,52 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Failed to generate OTP");
     }
 
-    // Send email via Resend
-    const { error: emailError } = await resend.emails.send({
-      from: "GoHire <onboarding@resend.dev>",
-      to: [email],
-      reply_to: 'gohire.info@gmail.com',
-      subject: "Your GoHire Verification Code",
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f4f4f4; padding: 20px; }
-            .container { max-width: 500px; margin: 0 auto; background: white; border-radius: 16px; padding: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-            .logo { text-align: center; margin-bottom: 30px; font-size: 28px; font-weight: bold; color: #0891b2; }
-            .code { background: linear-gradient(135deg, #0891b2, #06b6d4); color: white; font-size: 32px; letter-spacing: 8px; padding: 20px 40px; border-radius: 12px; text-align: center; margin: 30px 0; }
-            .message { color: #666; font-size: 16px; line-height: 1.6; text-align: center; }
-            .footer { color: #999; font-size: 12px; text-align: center; margin-top: 30px; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="logo">🎓 GoHire</div>
-            <p class="message">Here's your verification code to access your account:</p>
-            <div class="code">${otpCode}</div>
-            <p class="message">This code expires in 10 minutes. If you didn't request this, please ignore this email.</p>
-            <p class="footer">© GoHire - Connecting Students with Opportunities</p>
-          </div>
-        </body>
-        </html>
-      `,
+    // Send email via Gmail SMTP
+    const client = new SMTPClient({
+      connection: {
+        hostname: "smtp.gmail.com",
+        port: 465,
+        tls: true,
+        auth: {
+          username: "gohire.info@gmail.com",
+          password: Deno.env.get("GMAIL_APP_PASSWORD")!,
+        },
+      },
     });
 
-    if (emailError) {
-      console.error("Error sending email:", emailError);
-      throw new Error("Failed to send verification email");
-    }
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f4f4f4; padding: 20px; }
+          .container { max-width: 500px; margin: 0 auto; background: white; border-radius: 16px; padding: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+          .logo { text-align: center; margin-bottom: 30px; font-size: 28px; font-weight: bold; color: #0891b2; }
+          .code { background: linear-gradient(135deg, #0891b2, #06b6d4); color: white; font-size: 32px; letter-spacing: 8px; padding: 20px 40px; border-radius: 12px; text-align: center; margin: 30px 0; }
+          .message { color: #666; font-size: 16px; line-height: 1.6; text-align: center; }
+          .footer { color: #999; font-size: 12px; text-align: center; margin-top: 30px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="logo">🎓 GoHire</div>
+          <p class="message">Here's your verification code to access your account:</p>
+          <div class="code">${otpCode}</div>
+          <p class="message">This code expires in 10 minutes. If you didn't request this, please ignore this email.</p>
+          <p class="footer">© GoHire - Connecting Students with Opportunities</p>
+        </div>
+      </body>
+      </html>
+    `;
+
+    await client.send({
+      from: "GoHire <gohire.info@gmail.com>",
+      to: email,
+      subject: "Your GoHire Verification Code",
+      html: htmlContent,
+    });
+
+    await client.close();
 
     console.log(`OTP sent to ${email}`);
 
