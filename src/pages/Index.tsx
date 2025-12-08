@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, Users, ArrowRight } from "lucide-react";
+import { Sparkles, Users, Briefcase, ArrowRight } from "lucide-react";
 import Logo from "@/components/Logo";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -81,20 +81,21 @@ const Index = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
               size="lg" 
-              className="text-lg px-10 py-7 bg-cta hover:bg-cta/90 text-cta-foreground shadow-strong group"
-              onClick={() => navigate('/auth')}
+              className="text-lg px-8 py-7 bg-cta hover:bg-cta/90 text-cta-foreground shadow-strong group"
+              onClick={() => navigate('/auth?role=employee')}
             >
               <Users className="mr-2 w-6 h-6 group-hover:animate-wiggle" />
-              Get Started
+              Register as Employee
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
             <Button 
               size="lg" 
-              variant="outline"
-              className="text-lg px-10 py-7 glass-card hover:bg-primary/10 font-semibold"
-              onClick={() => navigate('/jobs')}
+              className="text-lg px-8 py-7 bg-primary hover:bg-primary/90 text-primary-foreground shadow-strong group"
+              onClick={() => navigate('/auth?role=employer')}
             >
-              Browse Opportunities
+              <Briefcase className="mr-2 w-6 h-6 group-hover:animate-wiggle" />
+              Register as Employer
+              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
           </div>
         </div>
