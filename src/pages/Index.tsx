@@ -124,7 +124,21 @@ const Index = () => {
 
       {/* Footer */}
       <footer className="relative z-10 glass border-t border-glass-border py-8 mt-auto">
-        <div className="container mx-auto px-4 text-center">
+        <div className="container mx-auto px-4 text-center space-y-4">
+          <div className="flex justify-center gap-6">
+            <button 
+              onClick={() => navigate('/terms')}
+              className="text-foreground/60 hover:text-foreground transition-colors font-medium"
+            >
+              Terms & Conditions
+            </button>
+            <button 
+              onClick={() => navigate('/privacy')}
+              className="text-foreground/60 hover:text-foreground transition-colors font-medium"
+            >
+              Privacy Policy
+            </button>
+          </div>
           <p className="text-foreground/60 font-medium">
             © 2025 GoHire - Connecting verified students with authentic opportunities
           </p>
