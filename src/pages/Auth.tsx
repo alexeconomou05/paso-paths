@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,17 +8,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Logo from "@/components/Logo";
-import { Upload, Mail, KeyRound, ArrowLeft, Loader2, Lock } from "lucide-react";
+import { Upload, Mail, KeyRound, ArrowLeft, Loader2, Lock, Building2, Users } from "lucide-react";
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
+import { Textarea } from "@/components/ui/textarea";
 
 type AuthStep = 'credentials' | 'otp-verification' | 'forgot-password' | 'reset-otp' | 'new-password';
+type UserRole = 'employee' | 'employer';
 
 const Auth = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [pasoFile, setPasoFile] = useState<File | null>(null);
   const [authStep, setAuthStep] = useState<AuthStep>('credentials');
@@ -27,7 +30,16 @@ const Auth = () => {
   const [pendingUserId, setPendingUserId] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [userRole, setUserRole] = useState<UserRole>('employee');
   
+  // Get role from URL params on mount
+  useEffect(() => {
+    const roleParam = searchParams.get('role');
+    if (roleParam === 'employer' || roleParam === 'employee') {
+      setUserRole(roleParam);
+    }
+  }, [searchParams]);
+
   const [signupData, setSignupData] = useState({
     email: "",
     password: "",
@@ -35,6 +47,16 @@ const Auth = () => {
     university: "",
     fieldOfStudy: "",
     pasoNumber: ""
+  });
+
+  const [employerSignupData, setEmployerSignupData] = useState({
+    email: "",
+    password: "",
+    companyName: "",
+    contactPerson: "",
+    phone: "",
+    companyWebsite: "",
+    companyDescription: ""
   });
 
   const [loginData, setLoginData] = useState({
@@ -212,6 +234,60 @@ const Auth = () => {
       await sendOTP(signupData.email);
 
       setPendingEmail(signupData.email);
+      setPendingUserId(authData.user.id);
+      setAuthStep('otp-verification');
+      toast.success("Account created! Please verify your email.");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to create account");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEmployerSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      if (!employerSignupData.email || !employerSignupData.password || !employerSignupData.companyName) {
+        toast.error("Please fill in all required fields");
+        setLoading(false);
+        return;
+      }
+
+      const { data: authData, error: signupError } = await supabase.auth.signUp({
+        email: employerSignupData.email,
+        password: employerSignupData.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            full_name: employerSignupData.contactPerson || employerSignupData.companyName,
+            is_employer: true
+          }
+        }
+      });
+
+      if (signupError) throw signupError;
+      if (!authData.user) throw new Error("No user data returned");
+
+      // Create employer profile
+      const { error: employerError } = await supabase
+        .from('employers')
+        .insert({
+          user_id: authData.user.id,
+          company_name: employerSignupData.companyName,
+          company_email: employerSignupData.email,
+          contact_person: employerSignupData.contactPerson,
+          phone: employerSignupData.phone,
+          company_website: employerSignupData.companyWebsite,
+          company_description: employerSignupData.companyDescription
+        });
+
+      if (employerError) throw employerError;
+
+      await sendOTP(employerSignupData.email);
+
+      setPendingEmail(employerSignupData.email);
       setPendingUserId(authData.user.id);
       setAuthStep('otp-verification');
       toast.success("Account created! Please verify your email.");
@@ -537,7 +613,33 @@ const Auth = () => {
             <Logo size="md" />
           </div>
           <CardTitle className="text-2xl">Welcome to GoHire</CardTitle>
-          <CardDescription>Sign in or create your verified student account</CardDescription>
+          <CardDescription>
+            {userRole === 'employee' 
+              ? 'Sign in or create your verified student account' 
+              : 'Sign in or register your company'}
+          </CardDescription>
+          
+          {/* Role Toggle */}
+          <div className="flex justify-center gap-2 mt-4">
+            <Button
+              variant={userRole === 'employee' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setUserRole('employee')}
+              className="gap-2"
+            >
+              <Users className="w-4 h-4" />
+              Employee
+            </Button>
+            <Button
+              variant={userRole === 'employer' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setUserRole('employer')}
+              className="gap-2"
+            >
+              <Building2 className="w-4 h-4" />
+              Employer
+            </Button>
+          </div>
         </CardHeader>
         
         <CardContent>
@@ -554,7 +656,7 @@ const Auth = () => {
                   <Input
                     id="login-email"
                     type="email"
-                    placeholder="your.email@university.gr"
+                    placeholder={userRole === 'employee' ? "your.email@university.gr" : "company@example.com"}
                     value={loginData.email}
                     onChange={(e) => setLoginData({...loginData, email: e.target.value})}
                     required
@@ -592,94 +694,184 @@ const Auth = () => {
             </TabsContent>
 
             <TabsContent value="signup">
-              <form onSubmit={handleSignup} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signup-name">Full Name *</Label>
-                  <Input
-                    id="signup-name"
-                    value={signupData.fullName}
-                    onChange={(e) => setSignupData({...signupData, fullName: e.target.value})}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email">University Email *</Label>
-                  <Input
-                    id="signup-email"
-                    type="email"
-                    placeholder="your.email@university.gr"
-                    value={signupData.email}
-                    onChange={(e) => setSignupData({...signupData, email: e.target.value})}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password *</Label>
-                  <Input
-                    id="signup-password"
-                    type="password"
-                    value={signupData.password}
-                    onChange={(e) => setSignupData({...signupData, password: e.target.value})}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="university">University</Label>
-                  <Input
-                    id="university"
-                    placeholder="e.g., National and Kapodistrian University of Athens"
-                    value={signupData.university}
-                    onChange={(e) => setSignupData({...signupData, university: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="field">Field of Study</Label>
-                  <Input
-                    id="field"
-                    placeholder="e.g., Computer Science"
-                    value={signupData.fieldOfStudy}
-                    onChange={(e) => setSignupData({...signupData, fieldOfStudy: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="paso">PASO Number</Label>
-                  <Input
-                    id="paso"
-                    placeholder="Your student ID number"
-                    value={signupData.pasoNumber}
-                    onChange={(e) => setSignupData({...signupData, pasoNumber: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="paso-file">PASO Document * (PDF or Image)</Label>
-                  <div className="flex items-center gap-2">
+              {userRole === 'employee' ? (
+                // Employee Signup Form
+                <form onSubmit={handleSignup} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-name">Full Name *</Label>
                     <Input
-                      id="paso-file"
-                      type="file"
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      onChange={(e) => setPasoFile(e.target.files?.[0] || null)}
+                      id="signup-name"
+                      value={signupData.fullName}
+                      onChange={(e) => setSignupData({...signupData, fullName: e.target.value})}
                       required
-                      className="flex-1"
                     />
-                    {pasoFile && (
-                      <Upload className="w-5 h-5 text-green-500" />
-                    )}
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Upload your student ID for verification. This will be reviewed by our team.
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-email">University Email *</Label>
+                    <Input
+                      id="signup-email"
+                      type="email"
+                      placeholder="your.email@university.gr"
+                      value={signupData.email}
+                      onChange={(e) => setSignupData({...signupData, email: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-password">Password *</Label>
+                    <Input
+                      id="signup-password"
+                      type="password"
+                      value={signupData.password}
+                      onChange={(e) => setSignupData({...signupData, password: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="university">University</Label>
+                    <Input
+                      id="university"
+                      placeholder="e.g., National and Kapodistrian University of Athens"
+                      value={signupData.university}
+                      onChange={(e) => setSignupData({...signupData, university: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="field">Field of Study</Label>
+                    <Input
+                      id="field"
+                      placeholder="e.g., Computer Science"
+                      value={signupData.fieldOfStudy}
+                      onChange={(e) => setSignupData({...signupData, fieldOfStudy: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="paso">PASO Number</Label>
+                    <Input
+                      id="paso"
+                      placeholder="Your student ID number"
+                      value={signupData.pasoNumber}
+                      onChange={(e) => setSignupData({...signupData, pasoNumber: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="paso-file">PASO Document * (PDF or Image)</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="paso-file"
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        onChange={(e) => setPasoFile(e.target.files?.[0] || null)}
+                        required
+                        className="flex-1"
+                      />
+                      {pasoFile && (
+                        <Upload className="w-5 h-5 text-green-500" />
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Upload your student ID for verification. This will be reviewed by our team.
+                    </p>
+                  </div>
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Creating Account...
+                      </>
+                    ) : (
+                      "Create Account"
+                    )}
+                  </Button>
+                </form>
+              ) : (
+                // Employer Signup Form
+                <form onSubmit={handleEmployerSignup} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="company-name">Company Name *</Label>
+                    <Input
+                      id="company-name"
+                      placeholder="Your company name"
+                      value={employerSignupData.companyName}
+                      onChange={(e) => setEmployerSignupData({...employerSignupData, companyName: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="employer-email">Company Email *</Label>
+                    <Input
+                      id="employer-email"
+                      type="email"
+                      placeholder="hr@company.com"
+                      value={employerSignupData.email}
+                      onChange={(e) => setEmployerSignupData({...employerSignupData, email: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="employer-password">Password *</Label>
+                    <Input
+                      id="employer-password"
+                      type="password"
+                      value={employerSignupData.password}
+                      onChange={(e) => setEmployerSignupData({...employerSignupData, password: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="contact-person">Contact Person</Label>
+                    <Input
+                      id="contact-person"
+                      placeholder="Full name of the contact person"
+                      value={employerSignupData.contactPerson}
+                      onChange={(e) => setEmployerSignupData({...employerSignupData, contactPerson: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      placeholder="+30 210 1234567"
+                      value={employerSignupData.phone}
+                      onChange={(e) => setEmployerSignupData({...employerSignupData, phone: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="company-website">Company Website</Label>
+                    <Input
+                      id="company-website"
+                      type="url"
+                      placeholder="https://www.company.com"
+                      value={employerSignupData.companyWebsite}
+                      onChange={(e) => setEmployerSignupData({...employerSignupData, companyWebsite: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="company-description">Company Description</Label>
+                    <Textarea
+                      id="company-description"
+                      placeholder="Tell us about your company..."
+                      value={employerSignupData.companyDescription}
+                      onChange={(e) => setEmployerSignupData({...employerSignupData, companyDescription: e.target.value})}
+                      rows={3}
+                    />
+                  </div>
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Creating Account...
+                      </>
+                    ) : (
+                      "Register Company"
+                    )}
+                  </Button>
+                  <p className="text-xs text-muted-foreground text-center">
+                    Your company account will be reviewed by our team before activation.
                   </p>
-                </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Creating Account...
-                    </>
-                  ) : (
-                    "Create Account"
-                  )}
-                </Button>
-              </form>
+                </form>
+              )}
             </TabsContent>
           </Tabs>
         </CardContent>
