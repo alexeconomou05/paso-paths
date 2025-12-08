@@ -83,6 +83,51 @@ export type Database = {
         }
         Relationships: []
       }
+      employers: {
+        Row: {
+          company_description: string | null
+          company_email: string
+          company_name: string
+          company_website: string | null
+          contact_person: string | null
+          created_at: string
+          id: string
+          logo_url: string | null
+          phone: string | null
+          updated_at: string
+          user_id: string
+          verification_status: string | null
+        }
+        Insert: {
+          company_description?: string | null
+          company_email: string
+          company_name: string
+          company_website?: string | null
+          contact_person?: string | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+          verification_status?: string | null
+        }
+        Update: {
+          company_description?: string | null
+          company_email?: string
+          company_name?: string
+          company_website?: string | null
+          contact_person?: string | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+          verification_status?: string | null
+        }
+        Relationships: []
+      }
       job_postings: {
         Row: {
           created_at: string
