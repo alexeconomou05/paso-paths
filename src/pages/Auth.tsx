@@ -145,11 +145,13 @@ const Auth = () => {
     try {
       if (newPassword.length < 6) {
         toast.error("Password must be at least 6 characters");
+        setLoading(false);
         return;
       }
 
       if (newPassword !== confirmPassword) {
         toast.error("Passwords do not match");
+        setLoading(false);
         return;
       }
 
@@ -161,8 +163,13 @@ const Auth = () => {
         }
       });
 
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      if (error) {
+        console.error("Reset password error:", error);
+        throw new Error(error.message || "Failed to reset password");
+      }
+      if (data?.error) {
+        throw new Error(data.error);
+      }
 
       toast.success("Password updated! Please log in.");
       setAuthStep('credentials');
@@ -171,6 +178,7 @@ const Auth = () => {
       setConfirmPassword("");
       setForgotEmail("");
     } catch (error: any) {
+      console.error("Reset password catch:", error);
       toast.error(error.message || "Failed to reset password");
     } finally {
       setLoading(false);
