@@ -13,12 +13,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage, languageLabels, Language } from '@/contexts/LanguageContext';
+import { useTranslation } from '@/hooks/useTranslation';
 import { ArrowLeft, Globe, Moon, Sun, FileText, Bug, LogOut, UserX, Trash2 } from 'lucide-react';
 
 export default function Settings() {
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
   const { language, setLanguage } = useLanguage();
+  const { t } = useTranslation();
   const [bugReport, setBugReport] = useState('');
   const [isSubmittingBug, setIsSubmittingBug] = useState(false);
   const [isDeactivating, setIsDeactivating] = useState(false);
@@ -26,20 +28,19 @@ export default function Settings() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    toast.success('Logged out successfully');
+    toast.success(t('loggedOutSuccess'));
     navigate('/');
   };
 
   const handleSubmitBugReport = async () => {
     if (!bugReport.trim()) {
-      toast.error('Please describe the bug');
+      toast.error(t('bugReportError'));
       return;
     }
     
     setIsSubmittingBug(true);
     try {
-      // For now, just show success - could integrate with email or database later
-      toast.success('Bug report submitted. Thank you!');
+      toast.success(t('bugReportSuccess'));
       setBugReport('');
     } catch (error) {
       toast.error('Failed to submit bug report');
@@ -57,7 +58,6 @@ export default function Settings() {
         return;
       }
 
-      // Update profile to mark as deactivated
       const { error } = await supabase
         .from('profiles')
         .update({ verification_status: 'rejected' as const })
@@ -66,7 +66,7 @@ export default function Settings() {
       if (error) throw error;
 
       await supabase.auth.signOut();
-      toast.success('Account deactivated');
+      toast.success(t('accountDeactivated'));
       navigate('/');
     } catch (error) {
       toast.error('Failed to deactivate account');
@@ -84,7 +84,6 @@ export default function Settings() {
         return;
       }
 
-      // Delete profile first (cascade will handle related data)
       const { error: profileError } = await supabase
         .from('profiles')
         .delete()
@@ -93,7 +92,7 @@ export default function Settings() {
       if (profileError) throw profileError;
 
       await supabase.auth.signOut();
-      toast.success('Account deleted successfully');
+      toast.success(t('accountDeleted'));
       navigate('/');
     } catch (error) {
       toast.error('Failed to delete account. Please contact support.');
@@ -111,22 +110,22 @@ export default function Settings() {
           className="mb-6"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
+          {t('back')}
         </Button>
 
-        <h1 className="text-3xl font-bold text-foreground mb-8">Settings</h1>
+        <h1 className="text-3xl font-bold text-foreground mb-8">{t('settings')}</h1>
 
         {/* Preferences */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle className="text-lg">Preferences</CardTitle>
+            <CardTitle className="text-lg">{t('preferences')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Language */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Globe className="h-5 w-5 text-muted-foreground" />
-                <Label htmlFor="language">Language</Label>
+                <Label htmlFor="language">{t('language')}</Label>
               </div>
               <Select value={language} onValueChange={(val) => setLanguage(val as Language)}>
                 <SelectTrigger className="w-40">
@@ -152,7 +151,7 @@ export default function Settings() {
                 ) : (
                   <Sun className="h-5 w-5 text-muted-foreground" />
                 )}
-                <Label htmlFor="theme">Dark Mode</Label>
+                <Label htmlFor="theme">{t('darkMode')}</Label>
               </div>
               <Switch
                 id="theme"
@@ -166,7 +165,7 @@ export default function Settings() {
         {/* Legal */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle className="text-lg">Legal</CardTitle>
+            <CardTitle className="text-lg">{t('legal')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <Button
@@ -175,7 +174,7 @@ export default function Settings() {
               onClick={() => navigate('/terms')}
             >
               <FileText className="mr-3 h-5 w-5 text-muted-foreground" />
-              Terms and Conditions
+              {t('termsAndConditions')}
             </Button>
             <Button
               variant="ghost"
@@ -183,7 +182,7 @@ export default function Settings() {
               onClick={() => navigate('/privacy')}
             >
               <FileText className="mr-3 h-5 w-5 text-muted-foreground" />
-              Privacy Policy
+              {t('privacyPolicy')}
             </Button>
           </CardContent>
         </Card>
@@ -191,25 +190,25 @@ export default function Settings() {
         {/* Support */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle className="text-lg">Support</CardTitle>
+            <CardTitle className="text-lg">{t('support')}</CardTitle>
           </CardHeader>
           <CardContent>
             <Dialog>
               <DialogTrigger asChild>
                 <Button variant="ghost" className="w-full justify-start">
                   <Bug className="mr-3 h-5 w-5 text-muted-foreground" />
-                  Report a Bug
+                  {t('reportBug')}
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Report a Bug</DialogTitle>
+                  <DialogTitle>{t('reportBugTitle')}</DialogTitle>
                   <DialogDescription>
-                    Describe the issue you encountered and we'll look into it.
+                    {t('reportBugDescription')}
                   </DialogDescription>
                 </DialogHeader>
                 <Textarea
-                  placeholder="Describe the bug..."
+                  placeholder={t('describeBug')}
                   value={bugReport}
                   onChange={(e) => setBugReport(e.target.value)}
                   rows={5}
@@ -219,7 +218,7 @@ export default function Settings() {
                     onClick={handleSubmitBugReport}
                     disabled={isSubmittingBug}
                   >
-                    {isSubmittingBug ? 'Submitting...' : 'Submit Report'}
+                    {isSubmittingBug ? t('submitting') : t('submitReport')}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -230,7 +229,7 @@ export default function Settings() {
         {/* Account Actions */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle className="text-lg">Account</CardTitle>
+            <CardTitle className="text-lg">{t('account')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <Button
@@ -239,7 +238,7 @@ export default function Settings() {
               onClick={handleLogout}
             >
               <LogOut className="mr-3 h-5 w-5 text-muted-foreground" />
-              Logout
+              {t('logout')}
             </Button>
 
             <Separator />
@@ -251,25 +250,24 @@ export default function Settings() {
                   className="w-full justify-start text-warning hover:text-warning"
                 >
                   <UserX className="mr-3 h-5 w-5" />
-                  Deactivate Account
+                  {t('deactivateAccount')}
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Deactivate Account?</AlertDialogTitle>
+                  <AlertDialogTitle>{t('deactivateTitle')}</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Your account will be deactivated and you won't be able to access job features. 
-                    You can contact support to reactivate your account later.
+                    {t('deactivateDescription')}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
                   <AlertDialogAction
                     onClick={handleDeactivateAccount}
                     disabled={isDeactivating}
                     className="bg-warning hover:bg-warning/90"
                   >
-                    {isDeactivating ? 'Deactivating...' : 'Deactivate'}
+                    {isDeactivating ? t('deactivating') : t('deactivate')}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -282,25 +280,24 @@ export default function Settings() {
                   className="w-full justify-start text-destructive hover:text-destructive"
                 >
                   <Trash2 className="mr-3 h-5 w-5" />
-                  Delete Account
+                  {t('deleteAccount')}
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Delete Account Permanently?</AlertDialogTitle>
+                  <AlertDialogTitle>{t('deleteTitle')}</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This action cannot be undone. All your data including profile, applications, 
-                    and uploaded files will be permanently deleted.
+                    {t('deleteDescription')}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
                   <AlertDialogAction
                     onClick={handleDeleteAccount}
                     disabled={isDeleting}
                     className="bg-destructive hover:bg-destructive/90"
                   >
-                    {isDeleting ? 'Deleting...' : 'Delete Forever'}
+                    {isDeleting ? t('deleting') : t('deleteForever')}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
