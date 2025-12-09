@@ -138,6 +138,12 @@ const Index = () => {
             >
               Privacy Policy
             </button>
+            <button 
+              onClick={() => navigate('/about')}
+              className="text-foreground/60 hover:text-foreground transition-colors font-medium"
+            >
+              About Us
+            </button>
           </div>
           <p className="text-foreground/60 font-medium">
             © 2025 GoHire - Connecting verified students with authentic opportunities
