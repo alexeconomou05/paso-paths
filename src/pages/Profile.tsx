@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { User, Upload, FileText, LogOut, Briefcase } from "lucide-react";
+import { User, Upload, FileText, LogOut, Briefcase, Settings } from "lucide-react";
 import Logo from "@/components/Logo";
 
 const Profile = () => {
@@ -145,9 +145,9 @@ const Profile = () => {
               <Briefcase className="mr-2 w-4 h-4" />
               Browse Jobs
             </Button>
-            <Button variant="outline" onClick={handleLogout}>
-              <LogOut className="mr-2 w-4 h-4" />
-              Logout
+            <Button variant="outline" onClick={() => navigate('/settings')}>
+              <Settings className="mr-2 w-4 h-4" />
+              Settings
             </Button>
           </div>
         </div>
