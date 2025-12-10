@@ -7,9 +7,11 @@ import { Button } from "@/components/ui/button";
 import { MapPin, DollarSign, Briefcase, GraduationCap, Sparkles, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import Logo from "@/components/Logo";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const Jobs = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [recommendationLoading, setRecommendationLoading] = useState(false);
@@ -70,7 +72,6 @@ const Jobs = () => {
       if (error) {
         console.error("Recommendation error:", error);
         toast.error("Failed to load personalized recommendations");
-        // Fallback to regular fetch
         fetchJobs();
       } else if (data?.recommendations) {
         setJobs(data.recommendations);
@@ -116,14 +117,14 @@ const Jobs = () => {
       <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10 flex items-center justify-center p-4">
         <Card className="glass-card p-8 max-w-md text-center">
           <div className="text-6xl mb-4">🔒</div>
-          <h2 className="text-2xl font-bold mb-4">Complete Your Profile</h2>
+          <h2 className="text-2xl font-bold mb-4">{t('completeProfile')}</h2>
           <p className="text-foreground/70 mb-6">
-            {!isVerified && "Please verify your student status and "}
-            {!hasCompletedProfile && "complete your profile with your field of study and skills "}
-            to access personalized job recommendations.
+            {!isVerified && t('verifyStatus') + ' '}
+            {!hasCompletedProfile && t('completeProfileDesc') + ' '}
+            {t('toAccessRecommendations')}
           </p>
           <Button onClick={() => navigate("/profile")} className="bg-cta hover:bg-cta/90 text-cta-foreground">
-            Go to Profile
+            {t('goToProfile')}
           </Button>
         </Card>
       </div>
@@ -153,7 +154,7 @@ const Jobs = () => {
             onClick={() => navigate("/profile")}
             className="font-semibold"
           >
-            Profile
+            {t('profile')}
           </Button>
         </div>
       </header>
@@ -162,9 +163,9 @@ const Jobs = () => {
         {/* Title */}
         <div className="text-center mb-8">
           <h1 className="text-4xl md:text-5xl font-extrabold mb-3 bg-gradient-to-r from-primary via-cta to-accent bg-clip-text text-transparent">
-            Your Personalized Opportunities
+            {t('yourPersonalizedOpportunities')}
           </h1>
-          <p className="text-lg text-foreground/70">AI-powered job matching based on your profile</p>
+          <p className="text-lg text-foreground/70">{t('aiPoweredMatching')}</p>
         </div>
 
         {/* Two Pillar Toggle */}
@@ -180,8 +181,8 @@ const Jobs = () => {
           >
             <div className="flex flex-col items-center gap-2">
               <GraduationCap className="w-8 h-8" />
-              <span className="font-bold text-lg">Based on Studies</span>
-              <span className="text-xs opacity-80">{profile?.field_of_study || 'Not set'}</span>
+              <span className="font-bold text-lg">{t('basedOnStudiesShort')}</span>
+              <span className="text-xs opacity-80">{profile?.field_of_study || t('notSet')}</span>
             </div>
           </Button>
 
@@ -196,9 +197,9 @@ const Jobs = () => {
           >
             <div className="flex flex-col items-center gap-2">
               <Sparkles className="w-8 h-8" />
-              <span className="font-bold text-lg">Dream Role</span>
+              <span className="font-bold text-lg">{t('dreamRole')}</span>
               <span className="text-xs opacity-80 line-clamp-1">
-                {profile?.career_interests ? profile.career_interests.substring(0, 30) + '...' : 'Set in profile'}
+                {profile?.career_interests ? profile.career_interests.substring(0, 30) + '...' : t('setInProfile')}
               </span>
             </div>
           </Button>
@@ -209,7 +210,7 @@ const Jobs = () => {
           <div className="text-center py-8 mb-8">
             <div className="inline-flex items-center gap-3 glass-card px-6 py-4 rounded-full">
               <Loader2 className="w-5 h-5 animate-spin text-primary" />
-              <span className="font-semibold text-foreground">AI is analyzing jobs for you...</span>
+              <span className="font-semibold text-foreground">{t('aiAnalyzing')}</span>
             </div>
           </div>
         )}
@@ -282,7 +283,7 @@ const Jobs = () => {
                   }}
                 >
                   <Briefcase className="w-4 h-4 mr-2" />
-                  View Original
+                  {t('viewOriginal')}
                 </Button>
               </Card>
             ))}
@@ -292,8 +293,8 @@ const Jobs = () => {
         {!loading && jobs.length === 0 && (
           <div className="text-center py-20">
             <div className="text-6xl mb-4">🔍</div>
-            <p className="text-xl text-foreground/70">No jobs available at the moment</p>
-            <p className="text-sm text-foreground/50 mt-2">Check back soon for new opportunities!</p>
+            <p className="text-xl text-foreground/70">{t('noJobsAvailable')}</p>
+            <p className="text-sm text-foreground/50 mt-2">{t('checkBackSoon')}</p>
           </div>
         )}
       </div>

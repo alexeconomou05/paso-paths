@@ -4,10 +4,12 @@ import { Sparkles, Users, Briefcase, ArrowRight } from "lucide-react";
 import Logo from "@/components/Logo";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const Index = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -40,7 +42,7 @@ const Index = () => {
               onClick={() => navigate('/auth')}
               className="font-semibold"
             >
-              Sign In
+              {t('signIn')}
             </Button>
           )}
           {user && (
@@ -48,7 +50,7 @@ const Index = () => {
               onClick={() => navigate('/jobs')}
               className="bg-cta hover:bg-cta/90 text-cta-foreground font-semibold"
             >
-              View Jobs
+              {t('viewJobs')}
             </Button>
           )}
         </div>
@@ -60,22 +62,22 @@ const Index = () => {
           <div className="inline-flex items-center gap-2 glass-card px-6 py-3 rounded-full mb-8 animate-bounce-in">
             <Sparkles className="w-5 h-5 text-accent animate-wiggle" />
             <span className="font-semibold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Authentic Community Platform
+              {t('authenticCommunityPlatform')}
             </span>
           </div>
           
           <h1 className="text-5xl md:text-7xl font-extrabold mb-6 leading-tight">
             <span className="bg-gradient-to-r from-primary via-cta to-accent bg-clip-text text-transparent">
-              Sign In to Find Jobs
+              {t('signInToFindJobs')}
             </span>
           </h1>
           
           <p className="text-xl md:text-2xl mb-4 text-foreground/80 max-w-2xl mx-auto font-medium">
-            Connect with opportunities that match your studies and dream role
+            {t('connectWithOpportunities')}
           </p>
           
           <p className="text-lg md:text-xl mb-10 text-foreground/60 max-w-2xl mx-auto">
-            For verified Greek university students only
+            {t('forVerifiedStudents')}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -85,7 +87,7 @@ const Index = () => {
               onClick={() => navigate('/auth?role=employee')}
             >
               <Users className="mr-2 w-6 h-6 group-hover:animate-wiggle" />
-              Register as Employee
+              {t('registerAsEmployee')}
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
             <Button 
@@ -94,7 +96,7 @@ const Index = () => {
               onClick={() => navigate('/auth?role=employer')}
             >
               <Briefcase className="mr-2 w-6 h-6 group-hover:animate-wiggle" />
-              Register as Employer
+              {t('registerAsEmployer')}
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
           </div>
@@ -106,17 +108,17 @@ const Index = () => {
         <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
           <div className="glass-card p-8 rounded-3xl hover:scale-105 transition-all duration-300 border-l-4 border-primary">
             <div className="text-5xl mb-4">🎓</div>
-            <h3 className="text-2xl font-bold mb-3">Based on Your Studies</h3>
+            <h3 className="text-2xl font-bold mb-3">{t('basedOnStudies')}</h3>
             <p className="text-foreground/70 text-lg">
-              Discover opportunities aligned with your field of study and academic background
+              {t('basedOnStudiesDesc')}
             </p>
           </div>
 
           <div className="glass-card p-8 rounded-3xl hover:scale-105 transition-all duration-300 border-l-4 border-accent">
             <div className="text-5xl mb-4">✨</div>
-            <h3 className="text-2xl font-bold mb-3">Your Dream Role</h3>
+            <h3 className="text-2xl font-bold mb-3">{t('yourDreamRole')}</h3>
             <p className="text-foreground/70 text-lg">
-              Find positions that match your career aspirations and professional goals
+              {t('yourDreamRoleDesc')}
             </p>
           </div>
         </div>
@@ -130,23 +132,23 @@ const Index = () => {
               onClick={() => navigate('/terms')}
               className="text-foreground/60 hover:text-foreground transition-colors font-medium"
             >
-              Terms & Conditions
+              {t('termsConditions')}
             </button>
             <button 
               onClick={() => navigate('/privacy')}
               className="text-foreground/60 hover:text-foreground transition-colors font-medium"
             >
-              Privacy Policy
+              {t('privacyPolicy')}
             </button>
             <button 
               onClick={() => navigate('/about')}
               className="text-foreground/60 hover:text-foreground transition-colors font-medium"
             >
-              About Us
+              {t('aboutUs')}
             </button>
           </div>
           <p className="text-foreground/60 font-medium">
-            © 2025 GoHire - Connecting verified students with authentic opportunities
+            {t('copyright')}
           </p>
         </div>
       </footer>
