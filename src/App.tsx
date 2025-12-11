@@ -15,6 +15,10 @@ import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import About from "./pages/About";
 import Settings from "./pages/Settings";
+import StudentDashboard from "./pages/StudentDashboard";
+import EmployerDashboard from "./pages/EmployerDashboard";
+import EmployerProfile from "./pages/EmployerProfile";
+import PostJob from "./pages/PostJob";
 import NotFound from "./pages/NotFound";
 import CookieConsent from "./components/CookieConsent";
 
@@ -39,7 +43,10 @@ const App = () => (
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/about" element={<About />} />
               <Route path="/settings" element={<Settings />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="/student-dashboard" element={<StudentDashboard />} />
+              <Route path="/employer-dashboard" element={<EmployerDashboard />} />
+              <Route path="/employer-profile" element={<EmployerProfile />} />
+              <Route path="/post-job" element={<PostJob />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <CookieConsent />

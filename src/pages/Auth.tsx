@@ -89,7 +89,19 @@ const Auth = () => {
       if (data?.error) throw new Error(data.error);
 
       toast.success("Email verified! Redirecting...");
-      navigate('/profile');
+      
+      // Check if user is employer and redirect accordingly
+      const { data: employer } = await supabase
+        .from('employers')
+        .select('id')
+        .eq('user_id', pendingUserId)
+        .maybeSingle();
+      
+      if (employer) {
+        navigate('/employer-dashboard');
+      } else {
+        navigate('/student-dashboard');
+      }
     } catch (error: any) {
       toast.error(error.message || "Invalid verification code");
     } finally {
@@ -331,8 +343,19 @@ const Auth = () => {
         setAuthStep('otp-verification');
         toast.info("Please verify your email to continue");
       } else {
+        // Check if user is employer and redirect accordingly
+        const { data: employer } = await supabase
+          .from('employers')
+          .select('id')
+          .eq('user_id', data.user.id)
+          .maybeSingle();
+        
         toast.success("Welcome back!");
-        navigate('/profile');
+        if (employer) {
+          navigate('/employer-dashboard');
+        } else {
+          navigate('/student-dashboard');
+        }
       }
     } catch (error: any) {
       toast.error(error.message || "Failed to log in");
