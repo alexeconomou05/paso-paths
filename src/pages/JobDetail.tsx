@@ -7,7 +7,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ArrowLeft, Briefcase, MapPin, DollarSign, Building2, Send } from "lucide-react";
+import { ArrowLeft, MapPin, DollarSign, Building2, Send, ExternalLink } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const JobDetail = () => {
   const { id } = useParams();
@@ -18,6 +28,7 @@ const JobDetail = () => {
   const [applying, setApplying] = useState(false);
   const [coverLetter, setCoverLetter] = useState("");
   const [hasApplied, setHasApplied] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   useEffect(() => {
     fetchJobAndProfile();
@@ -34,13 +45,14 @@ const JobDetail = () => {
 
       if (jobError) throw jobError;
       
-      // If job has external URL, redirect immediately
+      // Store job data - we'll handle external URL in the UI
+      setJob(jobData);
+      
+      // Only fetch profile for internal jobs
       if (jobData.external_url) {
-        window.location.href = jobData.external_url;
+        setLoading(false);
         return;
       }
-      
-      setJob(jobData);
 
       // Check if user is authenticated and fetch profile
       const { data: { user } } = await supabase.auth.getUser();
@@ -75,7 +87,7 @@ const JobDetail = () => {
     }
   };
 
-  const handleApply = async () => {
+  const handleApplyClick = () => {
     if (!profile) {
       toast.error("Please sign in to apply");
       navigate('/auth');
@@ -93,6 +105,12 @@ const JobDetail = () => {
       return;
     }
 
+    // Show confirmation dialog
+    setShowConfirmDialog(true);
+  };
+
+  const handleConfirmApply = async () => {
+    setShowConfirmDialog(false);
     setApplying(true);
 
     try {
@@ -116,6 +134,12 @@ const JobDetail = () => {
       toast.error(error.message || "Failed to submit application");
     } finally {
       setApplying(false);
+    }
+  };
+
+  const handleExternalApply = () => {
+    if (job?.external_url) {
+      window.open(job.external_url, '_blank');
     }
   };
 
@@ -204,7 +228,27 @@ const JobDetail = () => {
               </p>
             </div>
 
-            {!hasApplied ? (
+            {/* External job - redirect to original site */}
+            {job.external_url ? (
+              <div className="border-t pt-6">
+                <h3 className="text-xl font-bold mb-4">Apply for This Position</h3>
+                <Card className="bg-muted">
+                  <CardContent className="pt-6 text-center space-y-4">
+                    <p className="text-muted-foreground">
+                      This job posting is hosted on an external website. Click below to apply on the original site.
+                    </p>
+                    <Button 
+                      onClick={handleExternalApply}
+                      size="lg"
+                      className="w-full"
+                    >
+                      <ExternalLink className="mr-2 w-4 h-4" />
+                      Apply on External Site
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            ) : !hasApplied ? (
               <div className="border-t pt-6">
                 <h3 className="text-xl font-bold mb-4">Apply for This Position</h3>
                 {profile ? (
@@ -222,7 +266,7 @@ const JobDetail = () => {
                         />
                       </div>
                       <Button 
-                        onClick={handleApply} 
+                        onClick={handleApplyClick} 
                         disabled={applying}
                         size="lg"
                         className="w-full"
@@ -260,6 +304,25 @@ const JobDetail = () => {
                 </CardContent>
               </Card>
             )}
+
+            {/* Confirmation Dialog */}
+            <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Confirm Application</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to apply for <strong>{job.job_title}</strong> at <strong>{job.employer_name}</strong>? 
+                    Your profile and CV will be shared with the employer.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleConfirmApply}>
+                    Yes, Submit Application
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </CardContent>
         </Card>
       </main>
