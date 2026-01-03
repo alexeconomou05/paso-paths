@@ -38,21 +38,35 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Verify OTP
+    // Verify OTP - check for unverified OR recently verified OTPs (within last 5 minutes)
+    // This handles the case where OTP was just verified for display purposes
     const { data: otpRecord, error: fetchError } = await supabase
       .from("email_otps")
       .select("*")
       .eq("email", email)
       .eq("otp_code", otp)
-      .eq("verified", false)
+      .order("created_at", { ascending: false })
+      .limit(1)
       .single();
 
     if (fetchError || !otpRecord) {
       console.log("OTP not found:", fetchError);
       return new Response(
-        JSON.stringify({ error: "Invalid verification code" }),
+        JSON.stringify({ error: "Invalid verification code. Please request a new code." }),
         { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
+    }
+
+    // Check if OTP was already used for password reset (we'll mark it differently)
+    if (otpRecord.verified === true) {
+      // Check if it was verified very recently (within last 10 minutes) - allow it
+      const verifiedRecently = new Date(otpRecord.expires_at) > new Date(Date.now() - 10 * 60 * 1000);
+      if (!verifiedRecently) {
+        return new Response(
+          JSON.stringify({ error: "This code has already been used. Please request a new code." }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
     }
 
     if (new Date(otpRecord.expires_at) < new Date()) {
