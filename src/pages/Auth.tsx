@@ -144,9 +144,11 @@ const Auth = () => {
 
   const handleVerifyResetOTP = async () => {
     if (otpCode.length !== 6) {
-      toast.error("Please enter the complete code");
+      toast.error("Please enter the complete 6-digit code");
       return;
     }
+    // Don't verify OTP here - just move to password step
+    // OTP will be verified in reset-password function
     setAuthStep('new-password');
   };
 
