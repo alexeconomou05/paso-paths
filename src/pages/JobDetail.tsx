@@ -45,11 +45,11 @@ const JobDetail = () => {
 
       if (jobError) throw jobError;
       
-      // Store job data - we'll handle external URL in the UI
+      // Store job data
       setJob(jobData);
       
-      // Only fetch profile for internal jobs
-      if (jobData.external_url) {
+      // Only fetch profile for internal jobs (jobs from GoHire employers)
+      if (!jobData.employer_id) {
         setLoading(false);
         return;
       }
@@ -228,23 +228,32 @@ const JobDetail = () => {
               </p>
             </div>
 
-            {/* External job - redirect to original site */}
-            {job.external_url ? (
+            {/* External job (no employer_id means not from a GoHire employer) - redirect to original site */}
+            {!job.employer_id ? (
               <div className="border-t pt-6">
                 <h3 className="text-xl font-bold mb-4">Apply for This Position</h3>
                 <Card className="bg-muted">
                   <CardContent className="pt-6 text-center space-y-4">
                     <p className="text-muted-foreground">
-                      This job posting is hosted on an external website. Click below to apply on the original site.
+                      This job posting is from an external source. Click below to apply on the original site.
                     </p>
-                    <Button 
-                      onClick={handleExternalApply}
-                      size="lg"
-                      className="w-full"
-                    >
-                      <ExternalLink className="mr-2 w-4 h-4" />
-                      Apply on External Site
-                    </Button>
+                    {job.external_url ? (
+                      <Button 
+                        onClick={handleExternalApply}
+                        size="lg"
+                        className="w-full"
+                      >
+                        <ExternalLink className="mr-2 w-4 h-4" />
+                        Apply on External Site
+                      </Button>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        Contact the employer at{' '}
+                        <a href={`mailto:${job.employer_email}`} className="text-primary hover:underline">
+                          {job.employer_email}
+                        </a>
+                      </p>
+                    )}
                   </CardContent>
                 </Card>
               </div>

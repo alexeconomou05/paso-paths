@@ -132,6 +132,7 @@ export type Database = {
         Row: {
           created_at: string
           employer_email: string
+          employer_id: string | null
           employer_name: string
           employment_type: Database["public"]["Enums"]["employment_type"]
           external_url: string | null
@@ -147,6 +148,7 @@ export type Database = {
         Insert: {
           created_at?: string
           employer_email: string
+          employer_id?: string | null
           employer_name: string
           employment_type: Database["public"]["Enums"]["employment_type"]
           external_url?: string | null
@@ -162,6 +164,7 @@ export type Database = {
         Update: {
           created_at?: string
           employer_email?: string
+          employer_id?: string | null
           employer_name?: string
           employment_type?: Database["public"]["Enums"]["employment_type"]
           external_url?: string | null
@@ -174,7 +177,15 @@ export type Database = {
           salary_range?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "job_postings_employer_id_fkey"
+            columns: ["employer_id"]
+            isOneToOne: false
+            referencedRelation: "employers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {

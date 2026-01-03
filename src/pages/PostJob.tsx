@@ -80,6 +80,7 @@ const PostJob = () => {
           external_url: jobData.external_url || null,
           employer_name: employer.company_name,
           employer_email: employer.company_email,
+          employer_id: employer.id, // Link to employer account
           is_active: true
         });
 
