@@ -11,6 +11,7 @@ import Profile from "./pages/Profile";
 import Jobs from "./pages/Jobs";
 import JobDetail from "./pages/JobDetail";
 import Admin from "./pages/Admin";
+import AdminJobs from "./pages/AdminJobs";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import About from "./pages/About";
@@ -39,6 +40,7 @@ const App = () => (
               <Route path="/jobs" element={<Jobs />} />
               <Route path="/jobs/:id" element={<JobDetail />} />
               <Route path="/admin" element={<Admin />} />
+              <Route path="/admin/jobs" element={<AdminJobs />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/about" element={<About />} />

@@ -16,7 +16,9 @@ import {
   FileText, 
   ExternalLink,
   LogOut,
-  Users
+  Users,
+  Briefcase,
+  Plus
 } from "lucide-react";
 
 interface Profile {
@@ -219,6 +221,10 @@ const Admin = () => {
               Admin Panel
             </Badge>
           </div>
+          <Button variant="outline" onClick={() => navigate('/admin/jobs')} className="gap-2">
+            <Plus className="w-4 h-4" />
+            Add External Job
+          </Button>
           <Button variant="ghost" onClick={handleLogout} className="gap-2">
             <LogOut className="w-4 h-4" />
             Logout
