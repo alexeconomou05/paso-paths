@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Logo from "@/components/Logo";
@@ -19,13 +21,30 @@ import {
   FileText,
   ArrowLeft,
   ExternalLink,
-  AlertCircle
+  AlertCircle,
+  Download,
+  Search,
+  Globe
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+
+const COMMON_SEARCH_QUERIES = [
+  'σερβιτόρος',
+  'πωλητής',
+  'marketing',
+  'IT support',
+  'γραμματέας',
+  'λογιστής',
+  'διανομέας',
+  'barista',
+  'receptionist',
+  'customer service'
+];
 
 const AdminJobs = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [importing, setImporting] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [jobData, setJobData] = useState({
@@ -40,6 +59,19 @@ const AdminJobs = () => {
     employer_email: ''
   });
   const [urlError, setUrlError] = useState('');
+  
+  // Import settings
+  const [searchQueries, setSearchQueries] = useState<string[]>([]);
+  const [customQuery, setCustomQuery] = useState('');
+  const [sources, setSources] = useState({
+    'xe.gr': true,
+    'kariera.gr': true
+  });
+  const [importResult, setImportResult] = useState<{
+    scraped: number;
+    inserted: number;
+    errors: number;
+  } | null>(null);
 
   useEffect(() => {
     checkAdminAccess();
@@ -153,6 +185,67 @@ const AdminJobs = () => {
     }
   };
 
+  const handleImportJobs = async () => {
+    if (searchQueries.length === 0) {
+      toast.error("Please select at least one search query");
+      return;
+    }
+
+    const activeSources = Object.entries(sources)
+      .filter(([_, enabled]) => enabled)
+      .map(([source]) => source);
+
+    if (activeSources.length === 0) {
+      toast.error("Please select at least one job source");
+      return;
+    }
+
+    setImporting(true);
+    setImportResult(null);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('import-jobs', {
+        body: { 
+          searchQueries,
+          sources: activeSources
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        setImportResult({
+          scraped: data.scraped,
+          inserted: data.inserted,
+          errors: data.errors
+        });
+        toast.success(`Imported ${data.inserted} new jobs from ${activeSources.join(' & ')}`);
+      } else {
+        throw new Error(data.error || 'Import failed');
+      }
+    } catch (error: any) {
+      console.error('Import error:', error);
+      toast.error(error.message || "Failed to import jobs");
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  const toggleQuery = (query: string) => {
+    setSearchQueries(prev => 
+      prev.includes(query) 
+        ? prev.filter(q => q !== query)
+        : [...prev, query]
+    );
+  };
+
+  const addCustomQuery = () => {
+    if (customQuery.trim() && !searchQueries.includes(customQuery.trim())) {
+      setSearchQueries(prev => [...prev, customQuery.trim()]);
+      setCustomQuery('');
+    }
+  };
+
   if (checkingAuth || !isAdmin) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10 flex items-center justify-center">
@@ -180,29 +273,170 @@ const AdminJobs = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-2xl">
-        <Card className="glass-card">
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-cta/20 rounded-full flex items-center justify-center">
-                <ExternalLink className="w-6 h-6 text-cta" />
-              </div>
-              <div>
-                <CardTitle>Add External Job Posting</CardTitle>
-                <CardDescription>
-                  Add a job from an external source. External URL is required.
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
+      <main className="container mx-auto px-4 py-8 max-w-3xl">
+        <Tabs defaultValue="import" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="import" className="gap-2">
+              <Download className="w-4 h-4" />
+              Auto Import Jobs
+            </TabsTrigger>
+            <TabsTrigger value="manual" className="gap-2">
+              <ExternalLink className="w-4 h-4" />
+              Add Manually
+            </TabsTrigger>
+          </TabsList>
 
-          <CardContent>
-            <Alert className="mb-6 border-amber-500/50 bg-amber-500/10">
-              <AlertCircle className="h-4 w-4 text-amber-500" />
-              <AlertDescription className="text-amber-700 dark:text-amber-300">
-                External jobs require a valid application URL. Students will be redirected to this URL to apply.
-              </AlertDescription>
-            </Alert>
+          {/* Auto Import Tab */}
+          <TabsContent value="import">
+            <Card className="glass-card">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center">
+                    <Globe className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle>Import Jobs from Greek Job Sites</CardTitle>
+                    <CardDescription>
+                      Automatically scrape and import job listings from xe.gr and kariera.gr
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+
+              <CardContent className="space-y-6">
+                {/* Source Selection */}
+                <div className="space-y-3">
+                  <Label className="text-base font-semibold">Job Sources</Label>
+                  <div className="flex flex-wrap gap-4">
+                    {Object.entries(sources).map(([source, enabled]) => (
+                      <div key={source} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={source}
+                          checked={enabled}
+                          onCheckedChange={(checked) => 
+                            setSources(prev => ({ ...prev, [source]: !!checked }))
+                          }
+                        />
+                        <Label htmlFor={source} className="cursor-pointer">{source}</Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Search Queries */}
+                <div className="space-y-3">
+                  <Label className="text-base font-semibold">
+                    <Search className="w-4 h-4 inline mr-1" />
+                    Search Queries (select job types to import)
+                  </Label>
+                  <div className="flex flex-wrap gap-2">
+                    {COMMON_SEARCH_QUERIES.map((query) => (
+                      <Badge
+                        key={query}
+                        variant={searchQueries.includes(query) ? "default" : "outline"}
+                        className="cursor-pointer transition-colors"
+                        onClick={() => toggleQuery(query)}
+                      >
+                        {query}
+                      </Badge>
+                    ))}
+                  </div>
+                  
+                  {/* Custom query input */}
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Add custom search term..."
+                      value={customQuery}
+                      onChange={(e) => setCustomQuery(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomQuery())}
+                    />
+                    <Button type="button" variant="outline" onClick={addCustomQuery}>
+                      Add
+                    </Button>
+                  </div>
+
+                  {/* Selected queries */}
+                  {searchQueries.length > 0 && (
+                    <div className="p-3 bg-muted rounded-lg">
+                      <p className="text-sm text-muted-foreground mb-2">Selected queries:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {searchQueries.map((q) => (
+                          <Badge key={q} variant="secondary" className="gap-1">
+                            {q}
+                            <button
+                              type="button"
+                              onClick={() => toggleQuery(q)}
+                              className="ml-1 hover:text-destructive"
+                            >
+                              ×
+                            </button>
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Import Result */}
+                {importResult && (
+                  <Alert className="border-green-500/50 bg-green-500/10">
+                    <AlertDescription className="text-green-700 dark:text-green-300">
+                      <strong>Import Complete:</strong> Scraped {importResult.scraped} jobs, 
+                      inserted {importResult.inserted} new jobs
+                      {importResult.errors > 0 && `, ${importResult.errors} errors`}
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                <Button 
+                  onClick={handleImportJobs} 
+                  disabled={importing || searchQueries.length === 0}
+                  className="w-full bg-primary hover:bg-primary/90"
+                >
+                  {importing ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                      Importing Jobs...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="mr-2 w-4 h-4" />
+                      Import Jobs from {Object.entries(sources).filter(([_, e]) => e).map(([s]) => s).join(' & ')}
+                    </>
+                  )}
+                </Button>
+
+                <p className="text-xs text-muted-foreground text-center">
+                  This will search the selected job sites and import new listings with their actual application URLs.
+                </p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Manual Entry Tab */}
+          <TabsContent value="manual">
+            <Card className="glass-card">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-cta/20 rounded-full flex items-center justify-center">
+                    <ExternalLink className="w-6 h-6 text-cta" />
+                  </div>
+                  <div>
+                    <CardTitle>Add External Job Manually</CardTitle>
+                    <CardDescription>
+                      Add a job from an external source. External URL is required.
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+
+              <CardContent>
+                <Alert className="mb-6 border-amber-500/50 bg-amber-500/10">
+                  <AlertCircle className="h-4 w-4 text-amber-500" />
+                  <AlertDescription className="text-amber-700 dark:text-amber-300">
+                    External jobs require a valid application URL. Students will be redirected to this URL to apply.
+                  </AlertDescription>
+                </Alert>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* External URL - Required and prominent */}
@@ -343,8 +577,10 @@ const AdminJobs = () => {
                 {loading ? "Posting..." : "Post External Job"}
               </Button>
             </form>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
