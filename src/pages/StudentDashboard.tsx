@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Briefcase, MapPin, Clock, ExternalLink, User, Settings, GraduationCap, Sparkles } from "lucide-react";
 import Logo from "@/components/Logo";
 import { useTranslation } from "@/hooks/useTranslation";
+import ProfileCompletion from "@/components/ProfileCompletion";
 
 interface JobPosting {
   id: string;
@@ -137,15 +138,20 @@ const StudentDashboard = () => {
 
       <main className="container mx-auto px-4 py-8">
         {/* Welcome Section */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">
-            Welcome back, {profile?.full_name?.split(' ')[0] || 'Student'}! 👋
-          </h1>
-          <p className="text-muted-foreground">
-            {profile?.verification_status === 'approved' 
-              ? "Here are job opportunities matched for you"
-              : "Complete your profile verification to unlock personalized recommendations"}
-          </p>
+        <div className="mb-8 flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">
+              Welcome back, {profile?.full_name?.split(' ')[0] || 'Student'}! 👋
+            </h1>
+            <p className="text-muted-foreground">
+              {profile?.verification_status === 'approved' 
+                ? "Here are job opportunities matched for you"
+                : "Complete your profile verification to unlock personalized recommendations"}
+            </p>
+          </div>
+          <div className="w-full md:w-72">
+            <ProfileCompletion profile={profile} />
+          </div>
         </div>
 
         {/* Profile Status Card */}
