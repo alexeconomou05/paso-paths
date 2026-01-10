@@ -1,6 +1,7 @@
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, Circle } from "lucide-react";
+import { CheckCircle, Circle, Lightbulb } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ProfileCompletionProps {
   profile: {
@@ -19,20 +20,21 @@ interface ProfileCompletionProps {
 interface FieldCheck {
   label: string;
   completed: boolean;
+  tip: string;
 }
 
 const ProfileCompletion = ({ profile, showDetails = false }: ProfileCompletionProps) => {
   if (!profile) return null;
 
   const fields: FieldCheck[] = [
-    { label: "Full Name", completed: !!profile.full_name?.trim() },
-    { label: "University", completed: !!profile.university?.trim() },
-    { label: "Field of Study", completed: !!profile.field_of_study?.trim() },
-    { label: "Graduation Year", completed: !!profile.graduation_year },
-    { label: "Bio & Skills", completed: !!profile.bio?.trim() },
-    { label: "Career Interests", completed: !!profile.career_interests?.trim() },
-    { label: "Profile Photo", completed: !!profile.photo_url },
-    { label: "CV Upload", completed: !!profile.cv_url },
+    { label: "Full Name", completed: !!profile.full_name?.trim(), tip: "Add your full name so employers know who you are" },
+    { label: "University", completed: !!profile.university?.trim(), tip: "Specify your university to match with relevant opportunities" },
+    { label: "Field of Study", completed: !!profile.field_of_study?.trim(), tip: "Your major helps us recommend field-specific jobs" },
+    { label: "Graduation Year", completed: !!profile.graduation_year, tip: "Helps employers find candidates at the right career stage" },
+    { label: "Bio & Skills", completed: !!profile.bio?.trim(), tip: "Highlight your technical skills and experiences" },
+    { label: "Career Interests", completed: !!profile.career_interests?.trim(), tip: "Describe your dream role for better job matches" },
+    { label: "Profile Photo", completed: !!profile.photo_url, tip: "Profiles with photos get 40% more employer views" },
+    { label: "CV Upload", completed: !!profile.cv_url, tip: "Upload your CV to apply for jobs instantly" },
   ];
 
   const completedCount = fields.filter(f => f.completed).length;
@@ -62,17 +64,32 @@ const ProfileCompletion = ({ profile, showDetails = false }: ProfileCompletionPr
         </div>
         
         {showDetails && (
-          <div className="mt-4 grid grid-cols-2 gap-2">
+          <div className="mt-4 space-y-2">
             {fields.map((field) => (
-              <div key={field.label} className="flex items-center gap-2 text-xs">
-                {field.completed ? (
-                  <CheckCircle className="w-3.5 h-3.5 text-green-500" />
-                ) : (
-                  <Circle className="w-3.5 h-3.5 text-muted-foreground" />
+              <div key={field.label} className="flex items-center justify-between gap-2 text-xs p-2 rounded-md bg-muted/30">
+                <div className="flex items-center gap-2">
+                  {field.completed ? (
+                    <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
+                  ) : (
+                    <Circle className="w-4 h-4 text-muted-foreground shrink-0" />
+                  )}
+                  <span className={field.completed ? 'text-foreground' : 'text-muted-foreground'}>
+                    {field.label}
+                  </span>
+                </div>
+                {!field.completed && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-1 text-primary cursor-help">
+                        <Lightbulb className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Tip</span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="left" className="max-w-[200px]">
+                      <p>{field.tip}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 )}
-                <span className={field.completed ? 'text-foreground' : 'text-muted-foreground'}>
-                  {field.label}
-                </span>
               </div>
             ))}
           </div>
