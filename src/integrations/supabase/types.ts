@@ -128,6 +128,27 @@ export type Database = {
         }
         Relationships: []
       }
+      job_notifications: {
+        Row: {
+          id: string
+          job_id: string
+          sent_at: string
+          student_id: string
+        }
+        Insert: {
+          id?: string
+          job_id: string
+          sent_at?: string
+          student_id: string
+        }
+        Update: {
+          id?: string
+          job_id?: string
+          sent_at?: string
+          student_id?: string
+        }
+        Relationships: []
+      }
       job_postings: {
         Row: {
           created_at: string
@@ -199,6 +220,7 @@ export type Database = {
           full_name: string
           graduation_year: number | null
           id: string
+          job_notifications_enabled: boolean | null
           paso_document_url: string | null
           paso_number: string | null
           photo_url: string | null
@@ -220,6 +242,7 @@ export type Database = {
           full_name: string
           graduation_year?: number | null
           id: string
+          job_notifications_enabled?: boolean | null
           paso_document_url?: string | null
           paso_number?: string | null
           photo_url?: string | null
@@ -241,6 +264,7 @@ export type Database = {
           full_name?: string
           graduation_year?: number | null
           id?: string
+          job_notifications_enabled?: boolean | null
           paso_document_url?: string | null
           paso_number?: string | null
           photo_url?: string | null

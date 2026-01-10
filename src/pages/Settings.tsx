@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage, languageLabels, Language } from '@/contexts/LanguageContext';
 import { useTranslation } from '@/hooks/useTranslation';
-import { ArrowLeft, Globe, Moon, Sun, FileText, Bug, LogOut, UserX, Trash2 } from 'lucide-react';
+import { ArrowLeft, Globe, Moon, Sun, FileText, Bug, LogOut, UserX, Trash2, Bell } from 'lucide-react';
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -25,6 +25,52 @@ export default function Settings() {
   const [isSubmittingBug, setIsSubmittingBug] = useState(false);
   const [isDeactivating, setIsDeactivating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [jobNotifications, setJobNotifications] = useState(true);
+  const [loadingNotifications, setLoadingNotifications] = useState(true);
+
+  useEffect(() => {
+    loadNotificationPreference();
+  }, []);
+
+  const loadNotificationPreference = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data } = await supabase
+        .from('profiles')
+        .select('job_notifications_enabled')
+        .eq('id', user.id)
+        .single();
+
+      if (data) {
+        setJobNotifications(data.job_notifications_enabled ?? true);
+      }
+    } catch (error) {
+      console.error('Error loading notification preference:', error);
+    } finally {
+      setLoadingNotifications(false);
+    }
+  };
+
+  const handleToggleNotifications = async (enabled: boolean) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({ job_notifications_enabled: enabled })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      setJobNotifications(enabled);
+      toast.success(enabled ? 'Job notifications enabled' : 'Job notifications disabled');
+    } catch (error) {
+      toast.error('Failed to update notification preference');
+    }
+  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -157,6 +203,25 @@ export default function Settings() {
                 id="theme"
                 checked={theme === 'dark'}
                 onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
+              />
+            </div>
+
+            <Separator />
+
+            {/* Job Notifications */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Bell className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <Label htmlFor="notifications">Job Notifications</Label>
+                  <p className="text-xs text-muted-foreground">Get emails when new jobs match your profile</p>
+                </div>
+              </div>
+              <Switch
+                id="notifications"
+                checked={jobNotifications}
+                onCheckedChange={handleToggleNotifications}
+                disabled={loadingNotifications}
               />
             </div>
           </CardContent>
