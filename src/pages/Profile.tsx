@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { User, Upload, FileText, LogOut, Briefcase, Settings } from "lucide-react";
 import Logo from "@/components/Logo";
+import ProfileCompletion from "@/components/ProfileCompletion";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -154,6 +155,9 @@ const Profile = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8 max-w-3xl">
+        <div className="mb-6">
+          <ProfileCompletion profile={profile} showDetails />
+        </div>
         <Card className="glass-card">
           <CardHeader>
             <div className="flex items-center justify-between">
