@@ -14,3 +14,7 @@ verify_jwt = false
 
 [functions.import-jobs]
 verify_jwt = false
+
+[functions.notify-job-matches]
+verify_jwt = false
+schedule = "0 9 * * *"
