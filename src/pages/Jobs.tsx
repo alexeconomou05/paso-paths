@@ -10,6 +10,22 @@ import { toast } from "sonner";
 import Logo from "@/components/Logo";
 import { useTranslation } from "@/hooks/useTranslation";
 
+interface FilterPreferences {
+  employmentType?: string;
+  location?: string;
+  salaryRange?: string;
+  [key: string]: string | undefined;
+}
+
+const SALARY_RANGES = [
+  { value: "all", label: "Any Salary" },
+  { value: "0-500", label: "€0 - €500" },
+  { value: "500-1000", label: "€500 - €1,000" },
+  { value: "1000-2000", label: "€1,000 - €2,000" },
+  { value: "2000-3000", label: "€2,000 - €3,000" },
+  { value: "3000+", label: "€3,000+" },
+];
+
 const Jobs = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -21,6 +37,8 @@ const Jobs = () => {
   const [activeView, setActiveView] = useState<"studies" | "dream">("studies");
   const [selectedEmploymentType, setSelectedEmploymentType] = useState<string>("all");
   const [selectedLocation, setSelectedLocation] = useState<string>("all");
+  const [selectedSalaryRange, setSelectedSalaryRange] = useState<string>("all");
+  const [filtersLoaded, setFiltersLoaded] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -51,6 +69,14 @@ const Jobs = () => {
       console.error("Error fetching profile:", error);
     } else {
       setProfile(data);
+      // Load saved filter preferences
+      const prefs = data?.job_filter_preferences as FilterPreferences | null | undefined;
+      if (prefs && typeof prefs === 'object' && !filtersLoaded) {
+        setSelectedEmploymentType(prefs.employmentType || "all");
+        setSelectedLocation(prefs.location || "all");
+        setSelectedSalaryRange(prefs.salaryRange || "all");
+        setFiltersLoaded(true);
+      }
     }
   };
 
@@ -152,21 +178,77 @@ const Jobs = () => {
     return [...new Set(locations)].sort();
   }, [jobs]);
 
+  // Parse salary range from string (e.g., "€500 - €1000" or "1000€/month")
+  const parseSalaryValue = (salaryStr: string | null): number | null => {
+    if (!salaryStr) return null;
+    const match = salaryStr.match(/(\d+(?:,\d+)?(?:\.\d+)?)/);
+    if (match) {
+      return parseFloat(match[1].replace(',', ''));
+    }
+    return null;
+  };
+
   // Filter jobs based on selected filters
   const filteredJobs = useMemo(() => {
     return jobs.filter(job => {
       const matchesType = selectedEmploymentType === "all" || job.employment_type === selectedEmploymentType;
       const matchesLocation = selectedLocation === "all" || job.location === selectedLocation;
-      return matchesType && matchesLocation;
+      
+      // Salary range filter
+      let matchesSalary = true;
+      if (selectedSalaryRange !== "all") {
+        const jobSalary = parseSalaryValue(job.salary_range);
+        if (jobSalary !== null) {
+          if (selectedSalaryRange === "0-500") {
+            matchesSalary = jobSalary >= 0 && jobSalary <= 500;
+          } else if (selectedSalaryRange === "500-1000") {
+            matchesSalary = jobSalary > 500 && jobSalary <= 1000;
+          } else if (selectedSalaryRange === "1000-2000") {
+            matchesSalary = jobSalary > 1000 && jobSalary <= 2000;
+          } else if (selectedSalaryRange === "2000-3000") {
+            matchesSalary = jobSalary > 2000 && jobSalary <= 3000;
+          } else if (selectedSalaryRange === "3000+") {
+            matchesSalary = jobSalary > 3000;
+          }
+        } else {
+          // If no salary info, exclude from filtered results when salary filter is active
+          matchesSalary = false;
+        }
+      }
+      
+      return matchesType && matchesLocation && matchesSalary;
     });
-  }, [jobs, selectedEmploymentType, selectedLocation]);
+  }, [jobs, selectedEmploymentType, selectedLocation, selectedSalaryRange]);
+
+  // Save filter preferences to profile
+  const saveFilterPreferences = async () => {
+    if (!user?.id) return;
+    
+    const preferences = {
+      employmentType: selectedEmploymentType,
+      location: selectedLocation,
+      salaryRange: selectedSalaryRange,
+    };
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({ job_filter_preferences: preferences } as any)
+      .eq("id", user.id);
+
+    if (error) {
+      console.error("Error saving filter preferences:", error);
+    } else {
+      toast.success("Filter preferences saved!");
+    }
+  };
 
   const clearFilters = () => {
     setSelectedEmploymentType("all");
     setSelectedLocation("all");
+    setSelectedSalaryRange("all");
   };
 
-  const hasActiveFilters = selectedEmploymentType !== "all" || selectedLocation !== "all";
+  const hasActiveFilters = selectedEmploymentType !== "all" || selectedLocation !== "all" || selectedSalaryRange !== "all";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10">
@@ -266,11 +348,29 @@ const Jobs = () => {
             </SelectContent>
           </Select>
 
+          <Select value={selectedSalaryRange} onValueChange={setSelectedSalaryRange}>
+            <SelectTrigger className="w-[180px] glass-card">
+              <SelectValue placeholder="Salary Range" />
+            </SelectTrigger>
+            <SelectContent>
+              {SALARY_RANGES.map(range => (
+                <SelectItem key={range.value} value={range.value}>
+                  {range.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           {hasActiveFilters && (
-            <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground hover:text-foreground">
-              <X className="w-4 h-4 mr-1" />
-              Clear
-            </Button>
+            <>
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground hover:text-foreground">
+                <X className="w-4 h-4 mr-1" />
+                Clear
+              </Button>
+              <Button variant="outline" size="sm" onClick={saveFilterPreferences} className="text-primary">
+                Save Filters
+              </Button>
+            </>
           )}
         </div>
 

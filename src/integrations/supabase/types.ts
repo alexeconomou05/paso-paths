@@ -220,6 +220,7 @@ export type Database = {
           full_name: string
           graduation_year: number | null
           id: string
+          job_filter_preferences: Json | null
           job_notifications_enabled: boolean | null
           paso_document_url: string | null
           paso_number: string | null
@@ -242,6 +243,7 @@ export type Database = {
           full_name: string
           graduation_year?: number | null
           id: string
+          job_filter_preferences?: Json | null
           job_notifications_enabled?: boolean | null
           paso_document_url?: string | null
           paso_number?: string | null
@@ -264,6 +266,7 @@ export type Database = {
           full_name?: string
           graduation_year?: number | null
           id?: string
+          job_filter_preferences?: Json | null
           job_notifications_enabled?: boolean | null
           paso_document_url?: string | null
           paso_number?: string | null
