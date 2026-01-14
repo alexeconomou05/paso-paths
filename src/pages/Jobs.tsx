@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, DollarSign, Briefcase, GraduationCap, Sparkles, Loader2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MapPin, DollarSign, Briefcase, GraduationCap, Sparkles, Loader2, Filter, X } from "lucide-react";
 import { toast } from "sonner";
 import Logo from "@/components/Logo";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -18,6 +19,8 @@ const Jobs = () => {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [activeView, setActiveView] = useState<"studies" | "dream">("studies");
+  const [selectedEmploymentType, setSelectedEmploymentType] = useState<string>("all");
+  const [selectedLocation, setSelectedLocation] = useState<string>("all");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -141,6 +144,30 @@ const Jobs = () => {
     setActiveView(view);
   };
 
+  // Get unique locations from jobs
+  const uniqueLocations = useMemo(() => {
+    const locations = jobs
+      .map(job => job.location)
+      .filter((location): location is string => Boolean(location));
+    return [...new Set(locations)].sort();
+  }, [jobs]);
+
+  // Filter jobs based on selected filters
+  const filteredJobs = useMemo(() => {
+    return jobs.filter(job => {
+      const matchesType = selectedEmploymentType === "all" || job.employment_type === selectedEmploymentType;
+      const matchesLocation = selectedLocation === "all" || job.location === selectedLocation;
+      return matchesType && matchesLocation;
+    });
+  }, [jobs, selectedEmploymentType, selectedLocation]);
+
+  const clearFilters = () => {
+    setSelectedEmploymentType("all");
+    setSelectedLocation("all");
+  };
+
+  const hasActiveFilters = selectedEmploymentType !== "all" || selectedLocation !== "all";
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10">
       {/* Header */}
@@ -205,6 +232,55 @@ const Jobs = () => {
           </Button>
         </div>
 
+        {/* Filters */}
+        <div className="flex flex-wrap gap-4 mb-8 items-center justify-center">
+          <div className="flex items-center gap-2">
+            <Filter className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm font-medium text-muted-foreground">Filters:</span>
+          </div>
+          
+          <Select value={selectedEmploymentType} onValueChange={setSelectedEmploymentType}>
+            <SelectTrigger className="w-[180px] glass-card">
+              <SelectValue placeholder="Employment Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="internship">Internship</SelectItem>
+              <SelectItem value="part_time">Part Time</SelectItem>
+              <SelectItem value="full_time">Full Time</SelectItem>
+              <SelectItem value="graduate_program">Graduate Program</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+            <SelectTrigger className="w-[180px] glass-card">
+              <SelectValue placeholder="Location" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Locations</SelectItem>
+              {uniqueLocations.map(location => (
+                <SelectItem key={location} value={location}>
+                  {location}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {hasActiveFilters && (
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground hover:text-foreground">
+              <X className="w-4 h-4 mr-1" />
+              Clear
+            </Button>
+          )}
+        </div>
+
+        {/* Results count */}
+        {hasActiveFilters && (
+          <p className="text-center text-sm text-muted-foreground mb-4">
+            Showing {filteredJobs.length} of {jobs.length} jobs
+          </p>
+        )}
+
         {/* AI Loading indicator */}
         {recommendationLoading && (
           <div className="text-center py-8 mb-8">
@@ -222,7 +298,7 @@ const Jobs = () => {
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
-            {jobs.map((job, index) => (
+            {filteredJobs.map((job, index) => (
               <Card
                 key={job.id}
                 className="glass-card p-6 cursor-pointer group hover:scale-105 hover:-rotate-1 transition-all duration-300 animate-slide-up border-l-4 border-primary relative"
@@ -290,11 +366,20 @@ const Jobs = () => {
           </div>
         )}
 
-        {!loading && jobs.length === 0 && (
+        {!loading && filteredJobs.length === 0 && (
           <div className="text-center py-20">
             <div className="text-6xl mb-4">🔍</div>
-            <p className="text-xl text-foreground/70">{t('noJobsAvailable')}</p>
-            <p className="text-sm text-foreground/50 mt-2">{t('checkBackSoon')}</p>
+            <p className="text-xl text-foreground/70">
+              {hasActiveFilters ? "No jobs match your filters" : t('noJobsAvailable')}
+            </p>
+            <p className="text-sm text-foreground/50 mt-2">
+              {hasActiveFilters ? "Try adjusting your filters" : t('checkBackSoon')}
+            </p>
+            {hasActiveFilters && (
+              <Button variant="outline" onClick={clearFilters} className="mt-4">
+                Clear Filters
+              </Button>
+            )}
           </div>
         )}
       </div>
