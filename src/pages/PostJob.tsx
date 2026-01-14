@@ -8,19 +8,39 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ArrowLeft, Briefcase, MapPin, DollarSign, Link, FileText } from "lucide-react";
+import { ArrowLeft, Briefcase, MapPin, DollarSign, Link, FileText, AlertCircle } from "lucide-react";
 import Logo from "@/components/Logo";
+import { z } from "zod";
+
+const jobSchema = z.object({
+  job_title: z.string().trim().min(3, "Job title must be at least 3 characters").max(100, "Job title must be less than 100 characters"),
+  job_description: z.string().trim().min(50, "Description must be at least 50 characters").max(5000, "Description must be less than 5000 characters"),
+  requirements: z.string().max(3000, "Requirements must be less than 3000 characters").optional(),
+  location: z.string().trim().min(2, "Location is required").max(100, "Location must be less than 100 characters"),
+  employment_type: z.enum(["internship", "part_time", "full_time", "graduate_program"], {
+    errorMap: () => ({ message: "Please select an employment type" })
+  }),
+  salary_range: z.string().trim().min(3, "Salary range is required (e.g., €500-800/month)").max(50, "Salary must be less than 50 characters"),
+  external_url: z.string().url("Please enter a valid URL").optional().or(z.literal(""))
+});
+
+type JobFormData = z.infer<typeof jobSchema>;
+
+interface FormErrors {
+  [key: string]: string | undefined;
+}
 
 const PostJob = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [employer, setEmployer] = useState<any>(null);
+  const [errors, setErrors] = useState<FormErrors>({});
   const [jobData, setJobData] = useState({
     job_title: '',
     job_description: '',
     requirements: '',
     location: '',
-    employment_type: 'full_time',
+    employment_type: '',
     salary_range: '',
     external_url: ''
   });
@@ -57,30 +77,70 @@ const PostJob = () => {
     }
   };
 
+  const validateField = (field: keyof typeof jobData, value: string) => {
+    try {
+      const partialSchema = z.object({ [field]: jobSchema.shape[field] });
+      partialSchema.parse({ [field]: value });
+      setErrors(prev => ({ ...prev, [field]: undefined }));
+      return true;
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        setErrors(prev => ({ ...prev, [field]: err.errors[0]?.message }));
+      }
+      return false;
+    }
+  };
+
+  const handleChange = (field: keyof typeof jobData, value: string) => {
+    setJobData(prev => ({ ...prev, [field]: value }));
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: undefined }));
+    }
+  };
+
+  const handleBlur = (field: keyof typeof jobData) => {
+    validateField(field, jobData[field]);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setErrors({});
 
     try {
-      if (!jobData.job_title || !jobData.job_description || !jobData.employment_type) {
-        toast.error("Please fill in all required fields");
+      // Validate all fields
+      const result = jobSchema.safeParse(jobData);
+      
+      if (!result.success) {
+        const fieldErrors: FormErrors = {};
+        result.error.errors.forEach(err => {
+          const field = err.path[0] as string;
+          if (!fieldErrors[field]) {
+            fieldErrors[field] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+        toast.error("Please fix the errors in the form");
         setLoading(false);
         return;
       }
 
+      const validData = result.data;
+
       const { error } = await supabase
         .from('job_postings')
         .insert({
-          job_title: jobData.job_title,
-          job_description: jobData.job_description,
-          requirements: jobData.requirements || null,
-          location: jobData.location || null,
-          employment_type: jobData.employment_type as any,
-          salary_range: jobData.salary_range || null,
-          external_url: jobData.external_url || null,
+          job_title: validData.job_title,
+          job_description: validData.job_description,
+          requirements: validData.requirements || null,
+          location: validData.location,
+          employment_type: validData.employment_type as any,
+          salary_range: validData.salary_range,
+          external_url: validData.external_url || null,
           employer_name: employer.company_name,
           employer_email: employer.company_email,
-          employer_id: employer.id, // Link to employer account
+          employer_id: employer.id,
           is_active: true
         });
 
@@ -93,6 +153,16 @@ const PostJob = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const FieldError = ({ field }: { field: string }) => {
+    if (!errors[field]) return null;
+    return (
+      <p className="text-sm text-destructive flex items-center gap-1 mt-1">
+        <AlertCircle className="w-3 h-3" />
+        {errors[field]}
+      </p>
+    );
   };
 
   return (
@@ -127,27 +197,36 @@ const PostJob = () => {
 
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Required fields notice */}
+              <p className="text-sm text-muted-foreground">
+                Fields marked with <span className="text-destructive">*</span> are required
+              </p>
+
               <div className="space-y-2">
                 <Label htmlFor="title">
                   <Briefcase className="w-4 h-4 inline mr-1" />
-                  Job Title *
+                  Job Title <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="title"
                   value={jobData.job_title}
-                  onChange={(e) => setJobData({...jobData, job_title: e.target.value})}
+                  onChange={(e) => handleChange('job_title', e.target.value)}
+                  onBlur={() => handleBlur('job_title')}
                   placeholder="e.g., Junior Software Developer"
-                  required
+                  className={errors.job_title ? "border-destructive" : ""}
                 />
+                <FieldError field="job_title" />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="type">Employment Type *</Label>
+                <Label htmlFor="type">
+                  Employment Type <span className="text-destructive">*</span>
+                </Label>
                 <Select 
                   value={jobData.employment_type} 
-                  onValueChange={(value) => setJobData({...jobData, employment_type: value})}
+                  onValueChange={(value) => handleChange('employment_type', value)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className={errors.employment_type ? "border-destructive" : ""}>
                     <SelectValue placeholder="Select employment type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -157,21 +236,27 @@ const PostJob = () => {
                     <SelectItem value="graduate_program">Graduate Program</SelectItem>
                   </SelectContent>
                 </Select>
+                <FieldError field="employment_type" />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="description">
                   <FileText className="w-4 h-4 inline mr-1" />
-                  Job Description *
+                  Job Description <span className="text-destructive">*</span>
                 </Label>
                 <Textarea
                   id="description"
                   value={jobData.job_description}
-                  onChange={(e) => setJobData({...jobData, job_description: e.target.value})}
-                  placeholder="Describe the role, responsibilities, and what a typical day looks like..."
+                  onChange={(e) => handleChange('job_description', e.target.value)}
+                  onBlur={() => handleBlur('job_description')}
+                  placeholder="Describe the role, responsibilities, and what a typical day looks like... (minimum 50 characters)"
                   rows={5}
-                  required
+                  className={errors.job_description ? "border-destructive" : ""}
                 />
+                <FieldError field="job_description" />
+                <p className="text-xs text-muted-foreground">
+                  {jobData.job_description.length}/5000 characters (min 50)
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -179,7 +264,7 @@ const PostJob = () => {
                 <Textarea
                   id="requirements"
                   value={jobData.requirements}
-                  onChange={(e) => setJobData({...jobData, requirements: e.target.value})}
+                  onChange={(e) => handleChange('requirements', e.target.value)}
                   placeholder="List required skills, qualifications, and experience..."
                   rows={4}
                 />
@@ -189,27 +274,33 @@ const PostJob = () => {
                 <div className="space-y-2">
                   <Label htmlFor="location">
                     <MapPin className="w-4 h-4 inline mr-1" />
-                    Location
+                    Location <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     id="location"
                     value={jobData.location}
-                    onChange={(e) => setJobData({...jobData, location: e.target.value})}
-                    placeholder="e.g., Athens, Remote"
+                    onChange={(e) => handleChange('location', e.target.value)}
+                    onBlur={() => handleBlur('location')}
+                    placeholder="e.g., Athens, Thessaloniki, Remote"
+                    className={errors.location ? "border-destructive" : ""}
                   />
+                  <FieldError field="location" />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="salary">
                     <DollarSign className="w-4 h-4 inline mr-1" />
-                    Salary Range
+                    Salary Range <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     id="salary"
                     value={jobData.salary_range}
-                    onChange={(e) => setJobData({...jobData, salary_range: e.target.value})}
-                    placeholder="e.g., €800-1200/month"
+                    onChange={(e) => handleChange('salary_range', e.target.value)}
+                    onBlur={() => handleBlur('salary_range')}
+                    placeholder="e.g., €500-800/month"
+                    className={errors.salary_range ? "border-destructive" : ""}
                   />
+                  <FieldError field="salary_range" />
                 </div>
               </div>
 
@@ -222,9 +313,12 @@ const PostJob = () => {
                   id="url"
                   type="url"
                   value={jobData.external_url}
-                  onChange={(e) => setJobData({...jobData, external_url: e.target.value})}
+                  onChange={(e) => handleChange('external_url', e.target.value)}
+                  onBlur={() => handleBlur('external_url')}
                   placeholder="https://yourcompany.com/careers/apply"
+                  className={errors.external_url ? "border-destructive" : ""}
                 />
+                <FieldError field="external_url" />
                 <p className="text-xs text-muted-foreground">
                   If provided, students will be redirected to this URL to apply
                 </p>
