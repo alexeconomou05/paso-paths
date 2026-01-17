@@ -133,6 +133,55 @@ const Jobs = () => {
     }
   };
 
+  // Get unique locations from jobs - MUST be before any early returns
+  const uniqueLocations = useMemo(() => {
+    const locations = jobs
+      .map(job => job.location)
+      .filter((location): location is string => Boolean(location));
+    return [...new Set(locations)].sort();
+  }, [jobs]);
+
+  // Parse salary range from string (e.g., "€500 - €1000" or "1000€/month")
+  const parseSalaryValue = (salaryStr: string | null): number | null => {
+    if (!salaryStr) return null;
+    const match = salaryStr.match(/(\d+(?:,\d+)?(?:\.\d+)?)/);
+    if (match) {
+      return parseFloat(match[1].replace(',', ''));
+    }
+    return null;
+  };
+
+  // Filter jobs based on selected filters - MUST be before any early returns
+  const filteredJobs = useMemo(() => {
+    return jobs.filter(job => {
+      const matchesType = selectedEmploymentType === "all" || job.employment_type === selectedEmploymentType;
+      const matchesLocation = selectedLocation === "all" || job.location === selectedLocation;
+      
+      // Salary range filter
+      let matchesSalary = true;
+      if (selectedSalaryRange !== "all") {
+        const jobSalary = parseSalaryValue(job.salary_range);
+        if (jobSalary !== null) {
+          if (selectedSalaryRange === "0-500") {
+            matchesSalary = jobSalary >= 0 && jobSalary <= 500;
+          } else if (selectedSalaryRange === "500-1000") {
+            matchesSalary = jobSalary > 500 && jobSalary <= 1000;
+          } else if (selectedSalaryRange === "1000-2000") {
+            matchesSalary = jobSalary > 1000 && jobSalary <= 2000;
+          } else if (selectedSalaryRange === "2000-3000") {
+            matchesSalary = jobSalary > 2000 && jobSalary <= 3000;
+          } else if (selectedSalaryRange === "3000+") {
+            matchesSalary = jobSalary > 3000;
+          }
+        } else {
+          matchesSalary = false;
+        }
+      }
+      
+      return matchesType && matchesLocation && matchesSalary;
+    });
+  }, [jobs, selectedEmploymentType, selectedLocation, selectedSalaryRange]);
+
   const isVerified = profile?.verification_status === "approved";
   const hasCompletedProfile = profile?.field_of_study && profile?.bio;
 
@@ -170,55 +219,6 @@ const Jobs = () => {
     setActiveView(view);
   };
 
-  // Get unique locations from jobs
-  const uniqueLocations = useMemo(() => {
-    const locations = jobs
-      .map(job => job.location)
-      .filter((location): location is string => Boolean(location));
-    return [...new Set(locations)].sort();
-  }, [jobs]);
-
-  // Parse salary range from string (e.g., "€500 - €1000" or "1000€/month")
-  const parseSalaryValue = (salaryStr: string | null): number | null => {
-    if (!salaryStr) return null;
-    const match = salaryStr.match(/(\d+(?:,\d+)?(?:\.\d+)?)/);
-    if (match) {
-      return parseFloat(match[1].replace(',', ''));
-    }
-    return null;
-  };
-
-  // Filter jobs based on selected filters
-  const filteredJobs = useMemo(() => {
-    return jobs.filter(job => {
-      const matchesType = selectedEmploymentType === "all" || job.employment_type === selectedEmploymentType;
-      const matchesLocation = selectedLocation === "all" || job.location === selectedLocation;
-      
-      // Salary range filter
-      let matchesSalary = true;
-      if (selectedSalaryRange !== "all") {
-        const jobSalary = parseSalaryValue(job.salary_range);
-        if (jobSalary !== null) {
-          if (selectedSalaryRange === "0-500") {
-            matchesSalary = jobSalary >= 0 && jobSalary <= 500;
-          } else if (selectedSalaryRange === "500-1000") {
-            matchesSalary = jobSalary > 500 && jobSalary <= 1000;
-          } else if (selectedSalaryRange === "1000-2000") {
-            matchesSalary = jobSalary > 1000 && jobSalary <= 2000;
-          } else if (selectedSalaryRange === "2000-3000") {
-            matchesSalary = jobSalary > 2000 && jobSalary <= 3000;
-          } else if (selectedSalaryRange === "3000+") {
-            matchesSalary = jobSalary > 3000;
-          }
-        } else {
-          // If no salary info, exclude from filtered results when salary filter is active
-          matchesSalary = false;
-        }
-      }
-      
-      return matchesType && matchesLocation && matchesSalary;
-    });
-  }, [jobs, selectedEmploymentType, selectedLocation, selectedSalaryRange]);
 
   // Save filter preferences to profile
   const saveFilterPreferences = async () => {
