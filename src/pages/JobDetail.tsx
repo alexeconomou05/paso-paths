@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ArrowLeft, MapPin, DollarSign, Building2, Send, ExternalLink } from "lucide-react";
+import { ArrowLeft, MapPin, DollarSign, Building2, Send, ExternalLink, MessageSquare } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -183,6 +183,13 @@ const JobDetail = () => {
                   <Building2 className="w-5 h-5" />
                   {job.employer_name}
                 </CardDescription>
+                <Link 
+                  to={`/company-reviews?company=${encodeURIComponent(job.employer_name)}`}
+                  className="inline-flex items-center gap-2 text-sm text-primary hover:underline mt-1"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  See reviews about this company
+                </Link>
               </div>
             </div>
 

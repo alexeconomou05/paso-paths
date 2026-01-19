@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -50,6 +50,7 @@ interface Company {
 
 const CompanyReviews = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { t } = useTranslation();
   const [user, setUser] = useState<any>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -71,6 +72,13 @@ const CompanyReviews = () => {
   useEffect(() => {
     checkAuth();
     fetchReviews();
+    
+    // Check for company filter in URL params
+    const companyParam = searchParams.get("company");
+    if (companyParam) {
+      setSelectedCompany(companyParam);
+      setFormCompanyName(companyParam);
+    }
   }, []);
 
   const checkAuth = async () => {
