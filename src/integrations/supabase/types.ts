@@ -56,6 +56,53 @@ export type Database = {
           },
         ]
       }
+      company_reviews: {
+        Row: {
+          company_name: string
+          created_at: string
+          employer_id: string | null
+          id: string
+          is_anonymous: boolean | null
+          rating: number
+          review_text: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_name: string
+          created_at?: string
+          employer_id?: string | null
+          id?: string
+          is_anonymous?: boolean | null
+          rating: number
+          review_text: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_name?: string
+          created_at?: string
+          employer_id?: string | null
+          id?: string
+          is_anonymous?: boolean | null
+          rating?: number
+          review_text?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_reviews_employer_id_fkey"
+            columns: ["employer_id"]
+            isOneToOne: false
+            referencedRelation: "employers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_otps: {
         Row: {
           created_at: string

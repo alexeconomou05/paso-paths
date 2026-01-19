@@ -20,6 +20,7 @@ import StudentDashboard from "./pages/StudentDashboard";
 import EmployerDashboard from "./pages/EmployerDashboard";
 import EmployerProfile from "./pages/EmployerProfile";
 import PostJob from "./pages/PostJob";
+import CompanyReviews from "./pages/CompanyReviews";
 import NotFound from "./pages/NotFound";
 import CookieConsent from "./components/CookieConsent";
 
@@ -49,6 +50,7 @@ const App = () => (
               <Route path="/employer-dashboard" element={<EmployerDashboard />} />
               <Route path="/employer-profile" element={<EmployerProfile />} />
               <Route path="/post-job" element={<PostJob />} />
+              <Route path="/company-reviews" element={<CompanyReviews />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <CookieConsent />
