@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, Users, Briefcase, ArrowRight } from "lucide-react";
+import { Sparkles, Users, Briefcase, ArrowRight, MessageSquare } from "lucide-react";
 import Logo from "@/components/Logo";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,23 +36,40 @@ const Index = () => {
       <header className="relative z-10 glass border-b border-glass-border">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <Logo className="text-3xl md:text-4xl" />
-          {!user && (
-            <Button 
-              variant="ghost" 
-              onClick={() => navigate('/auth')}
-              className="font-semibold"
+          <nav className="hidden md:flex items-center gap-6">
+            <button 
+              onClick={() => navigate('/company-reviews')}
+              className="text-foreground/70 hover:text-foreground transition-colors font-medium flex items-center gap-2"
             >
-              {t('signIn')}
-            </Button>
-          )}
-          {user && (
-            <Button 
-              onClick={() => navigate('/jobs')}
-              className="bg-cta hover:bg-cta/90 text-cta-foreground font-semibold"
+              <MessageSquare className="w-4 h-4" />
+              Company Reviews
+            </button>
+            <button 
+              onClick={() => navigate('/about')}
+              className="text-foreground/70 hover:text-foreground transition-colors font-medium"
             >
-              {t('viewJobs')}
-            </Button>
-          )}
+              {t('aboutUs')}
+            </button>
+          </nav>
+          <div className="flex items-center gap-3">
+            {!user && (
+              <Button 
+                variant="ghost" 
+                onClick={() => navigate('/auth')}
+                className="font-semibold"
+              >
+                {t('signIn')}
+              </Button>
+            )}
+            {user && (
+              <Button 
+                onClick={() => navigate('/jobs')}
+                className="bg-cta hover:bg-cta/90 text-cta-foreground font-semibold"
+              >
+                {t('viewJobs')}
+              </Button>
+            )}
+          </div>
         </div>
       </header>
 
@@ -127,7 +144,13 @@ const Index = () => {
       {/* Footer */}
       <footer className="relative z-10 glass border-t border-glass-border py-8 mt-auto">
         <div className="container mx-auto px-4 text-center space-y-4">
-          <div className="flex justify-center gap-6">
+          <div className="flex flex-wrap justify-center gap-6">
+            <button 
+              onClick={() => navigate('/company-reviews')}
+              className="text-foreground/60 hover:text-foreground transition-colors font-medium"
+            >
+              Company Reviews
+            </button>
             <button 
               onClick={() => navigate('/terms')}
               className="text-foreground/60 hover:text-foreground transition-colors font-medium"
