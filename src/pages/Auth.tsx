@@ -724,7 +724,7 @@ const Auth = () => {
                   <Label htmlFor="login-email">Email</Label>
                   <Input
                     id="login-email"
-                    type="email"
+                    type="text"
                     placeholder={userRole === 'employee' ? "your.email@university.gr" : "company@example.com"}
                     value={loginData.email}
                     onChange={(e) => setLoginData({...loginData, email: e.target.value})}
