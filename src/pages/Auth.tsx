@@ -329,6 +329,14 @@ const Auth = () => {
     setLoading(true);
 
     try {
+      // Developer backdoor - skip authentication for testing
+      if (loginData.email === 'DEVELOPER' && loginData.password === 'DEVELOPER') {
+        toast.success("Developer mode activated!");
+        navigate('/student-dashboard');
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email: loginData.email,
         password: loginData.password
