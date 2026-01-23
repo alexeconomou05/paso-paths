@@ -36,6 +36,33 @@ const StudentDashboard = () => {
 
   const checkAuthAndLoad = async () => {
     try {
+      // Check for developer mode
+      const isDeveloperMode = localStorage.getItem('developerMode') === 'true';
+      
+      if (isDeveloperMode) {
+        // Set mock profile for developer mode
+        setProfile({
+          full_name: 'Developer User',
+          email: 'developer@test.com',
+          verification_status: 'approved',
+          field_of_study: 'Computer Science',
+          career_interests: 'Software Development',
+          university: 'Test University',
+          email_verified: true
+        });
+        
+        // Load jobs (public data)
+        const { data: jobsData } = await supabase
+          .from('job_postings')
+          .select('*')
+          .eq('is_active', true)
+          .order('created_at', { ascending: false });
+
+        setJobs(jobsData || []);
+        setLoading(false);
+        return;
+      }
+
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
