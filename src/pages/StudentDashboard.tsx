@@ -241,11 +241,17 @@ const StudentDashboard = () => {
               
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {typeJobs.map((job) => (
-                  <Card 
-                    key={job.id} 
-                    className="glass-card hover:scale-[1.02] transition-all cursor-pointer"
-                    onClick={() => job.external_url ? window.open(job.external_url, '_blank') : navigate(`/jobs/${job.id}`)}
-                  >
+                    <Card 
+                      key={job.id} 
+                      className="glass-card hover:scale-[1.02] transition-all cursor-pointer"
+                      onClick={() => {
+                        if (job.external_url) {
+                          window.open(job.external_url, '_blank', 'noopener,noreferrer');
+                        } else {
+                          navigate(`/jobs/${job.id}`);
+                        }
+                      }}
+                    >
                     <CardHeader className="pb-2">
                       <div className="flex justify-between items-start">
                         <CardTitle className="text-lg line-clamp-1">{job.job_title}</CardTitle>
