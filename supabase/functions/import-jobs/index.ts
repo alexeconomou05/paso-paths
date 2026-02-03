@@ -147,7 +147,8 @@ async function scrapeXeGr(apiKey: string, searchQuery: string): Promise<JobListi
 async function scrapeKariera(apiKey: string, searchQuery: string): Promise<JobListing[]> {
   console.log('Scraping kariera.gr for:', searchQuery);
   
-  const searchUrl = `https://www.kariera.gr/el/jobs?q=${encodeURIComponent(searchQuery)}`;
+  // Use a more specific search URL that shows actual job listings
+  const searchUrl = `https://www.kariera.gr/jobs?q=${encodeURIComponent(searchQuery)}&page=1`;
   
   try {
     const searchResponse = await fetch('https://api.firecrawl.dev/v1/scrape', {
@@ -158,9 +159,9 @@ async function scrapeKariera(apiKey: string, searchQuery: string): Promise<JobLi
       },
       body: JSON.stringify({
         url: searchUrl,
-        formats: ['markdown', 'links'],
-        onlyMainContent: true,
-        waitFor: 3000,
+        formats: ['markdown', 'links', 'html'],
+        onlyMainContent: false, // Get full page to find job links
+        waitFor: 8000, // Wait longer for JS rendering
       }),
     });
 
@@ -171,14 +172,34 @@ async function scrapeKariera(apiKey: string, searchQuery: string): Promise<JobLi
 
     const searchData = await searchResponse.json();
     const links: string[] = searchData.data?.links || [];
+    const html = searchData.data?.html || '';
+    const markdown = searchData.data?.markdown || '';
     
-    // Filter for job detail pages on kariera.gr
-    const jobLinks = links
-      .filter((link: string) => link.includes('kariera.gr/el/jobs/') && link.includes('-'))
-      .filter((link: string) => !link.includes('?'))
+    console.log('All links from kariera (count):', links.length);
+    
+    // Try to extract job URLs from HTML if links don't work
+    // Job URLs typically have numeric IDs like /jobs/job-title-123456
+    const jobUrlPattern = /https:\/\/www\.kariera\.gr\/jobs\/[a-z0-9-]+-\d+/gi;
+    const htmlJobUrls = html.match(jobUrlPattern) || [];
+    const markdownJobUrls = markdown.match(jobUrlPattern) || [];
+    
+    const allPotentialUrls = [...new Set([...links, ...htmlJobUrls, ...markdownJobUrls])];
+    console.log('Potential job URLs found:', allPotentialUrls.length);
+    
+    // Filter for actual job detail pages (must have numeric ID at end)
+    const jobLinks = allPotentialUrls
+      .filter((link: string) => {
+        // Match URLs with job ID (ends with -NUMBERS)
+        const hasJobId = /\/jobs\/[a-z0-9-]+-\d+$/i.test(link);
+        // Or match specific job paths
+        const isJobDetail = link.includes('kariera.gr/jobs/') && 
+          !link.includes('-jobs') && // exclude category pages like /jobs/tourism-jobs
+          link.split('/').pop()?.match(/\d+$/); // must end with digits
+        return hasJobId || isJobDetail;
+      })
       .slice(0, 5);
 
-    console.log('Found kariera job links:', jobLinks.length);
+    console.log('Found kariera job links:', jobLinks.length, jobLinks);
 
     const jobs: JobListing[] = [];
 
