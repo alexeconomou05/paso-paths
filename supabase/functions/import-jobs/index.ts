@@ -44,24 +44,23 @@ function detectEmploymentType(text: string): 'full_time' | 'part_time' | 'intern
   return 'full_time'; // default
 }
 
-async function scrapeXeGr(apiKey: string, searchQuery: string): Promise<JobListing[]> {
-  console.log('Scraping xe.gr for:', searchQuery);
-  
-  const searchUrl = `https://www.xe.gr/εργασία/θέσεις-εργασίας?free_text=${encodeURIComponent(searchQuery)}`;
+async function searchXeGr(apiKey: string, searchQuery: string): Promise<JobListing[]> {
+  console.log('Searching xe.gr for:', searchQuery);
   
   try {
-    // First, search for job listings
-    const searchResponse = await fetch('https://api.firecrawl.dev/v1/scrape', {
+    // Use Firecrawl's search endpoint to find actual job listings
+    const searchResponse = await fetch('https://api.firecrawl.dev/v1/search', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        url: searchUrl,
-        formats: ['markdown', 'links'],
-        onlyMainContent: true,
-        waitFor: 3000,
+        query: `site:xe.gr ${searchQuery} θέση εργασίας`,
+        limit: 5,
+        scrapeOptions: {
+          formats: ['markdown'],
+        },
       }),
     });
 
@@ -71,97 +70,67 @@ async function scrapeXeGr(apiKey: string, searchQuery: string): Promise<JobListi
     }
 
     const searchData = await searchResponse.json();
-    const links: string[] = searchData.data?.links || [];
+    const results = searchData.data || [];
     
-    // Filter for job detail pages
-    const jobLinks = links
-      .filter((link: string) => link.includes('/θέση-εργασίας/') || link.includes('θέσεις-εργασίας'))
-      .filter((link: string) => link.includes('-') && link.length > 80) // Job detail URLs are longer
-      .slice(0, 5); // Limit to 5 jobs per query
-
-    console.log('Found job links:', jobLinks.length);
+    console.log('XE.gr search results found:', results.length);
 
     const jobs: JobListing[] = [];
 
-    // Scrape each job detail page
-    for (const jobUrl of jobLinks) {
-      try {
-        const jobResponse = await fetch('https://api.firecrawl.dev/v1/scrape', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${apiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            url: jobUrl,
-            formats: ['markdown'],
-            onlyMainContent: true,
-          }),
-        });
+    for (const result of results) {
+      const url = result.url || '';
+      const markdown = result.markdown || '';
+      const title = result.title || 'Unknown Position';
+      
+      // Skip if not a xe.gr URL
+      if (!url.includes('xe.gr')) continue;
+      
+      console.log('Processing XE job URL:', url);
 
-        if (!jobResponse.ok) continue;
+      // Extract company name
+      const companyMatch = markdown.match(/(?:εταιρ[ιί]α|company)[\s:]+([^\n]+)/i);
+      const company = companyMatch ? companyMatch[1].trim() : 'Company from xe.gr';
 
-        const jobData = await jobResponse.json();
-        const markdown = jobData.data?.markdown || '';
-        const metadata = jobData.data?.metadata || {};
+      // Extract location
+      const locationMatch = markdown.match(/(?:περιοχή|τοποθεσία|location|area)[\s:]+([^\n]+)/i) ||
+                           markdown.match(/(Αθήνα|Θεσσαλονίκη|Πειραιάς|Athens|Thessaloniki)/i);
+      const location = locationMatch ? locationMatch[1]?.trim() || locationMatch[0].trim() : 'Greece';
 
-        // Extract job details from markdown
-        const titleMatch = markdown.match(/^#\s*(.+)/m) || metadata.title?.match(/(.+?)\s*[-|]/);
-        const title = titleMatch ? titleMatch[1].trim() : metadata.title?.split('-')[0]?.trim() || 'Unknown Position';
-
-        // Extract company name (usually after title or in metadata)
-        const companyMatch = markdown.match(/(?:εταιρ[ιί]α|company|employer)[\s:]+([^\n]+)/i) ||
-                           metadata.title?.match(/[-–]\s*(.+?)(?:\s*[-–]|$)/);
-        const company = companyMatch ? companyMatch[1].trim() : 'Company from xe.gr';
-
-        // Extract location
-        const locationMatch = markdown.match(/(?:περιοχή|τοποθεσία|location|area)[\s:]+([^\n]+)/i) ||
-                             markdown.match(/(?:Αθήνα|Θεσσαλονίκη|Πειραιάς|Athens|Thessaloniki)[^,\n]*/i);
-        const location = locationMatch ? locationMatch[0].trim() : 'Greece';
-
-        jobs.push({
-          job_title: title.substring(0, 200),
-          job_description: markdown.substring(0, 2000),
-          employer_name: company.substring(0, 100),
-          employer_email: 'jobs@xe.gr', // Placeholder since actual email isn't public
-          employment_type: detectEmploymentType(markdown),
-          location: location.substring(0, 100),
-          external_url: jobUrl,
-          source: 'xe.gr',
-        });
-
-        // Small delay between requests
-        await new Promise(r => setTimeout(r, 500));
-      } catch (err) {
-        console.error('Error scraping job:', jobUrl, err);
-      }
+      jobs.push({
+        job_title: title.substring(0, 200),
+        job_description: markdown.substring(0, 2000),
+        employer_name: company.substring(0, 100),
+        employer_email: 'jobs@xe.gr',
+        employment_type: detectEmploymentType(markdown),
+        location: location.substring(0, 100),
+        external_url: url, // This is the actual job URL
+        source: 'xe.gr',
+      });
     }
 
     return jobs;
   } catch (error) {
-    console.error('Error scraping xe.gr:', error);
+    console.error('Error searching xe.gr:', error);
     return [];
   }
 }
 
 async function scrapeKariera(apiKey: string, searchQuery: string): Promise<JobListing[]> {
-  console.log('Scraping kariera.gr for:', searchQuery);
-  
-  // Use a more specific search URL that shows actual job listings
-  const searchUrl = `https://www.kariera.gr/jobs?q=${encodeURIComponent(searchQuery)}&page=1`;
+  console.log('Searching kariera.gr for:', searchQuery);
   
   try {
-    const searchResponse = await fetch('https://api.firecrawl.dev/v1/scrape', {
+    // Use Firecrawl's search endpoint to find actual job listings
+    const searchResponse = await fetch('https://api.firecrawl.dev/v1/search', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        url: searchUrl,
-        formats: ['markdown', 'links', 'html'],
-        onlyMainContent: false, // Get full page to find job links
-        waitFor: 8000, // Wait longer for JS rendering
+        query: `site:kariera.gr ${searchQuery} θέση εργασίας`,
+        limit: 5,
+        scrapeOptions: {
+          formats: ['markdown'],
+        },
       }),
     });
 
@@ -171,91 +140,50 @@ async function scrapeKariera(apiKey: string, searchQuery: string): Promise<JobLi
     }
 
     const searchData = await searchResponse.json();
-    const links: string[] = searchData.data?.links || [];
-    const html = searchData.data?.html || '';
-    const markdown = searchData.data?.markdown || '';
+    const results = searchData.data || [];
     
-    console.log('All links from kariera (count):', links.length);
-    
-    // Try to extract job URLs from HTML if links don't work
-    // Job URLs typically have numeric IDs like /jobs/job-title-123456
-    const jobUrlPattern = /https:\/\/www\.kariera\.gr\/jobs\/[a-z0-9-]+-\d+/gi;
-    const htmlJobUrls = html.match(jobUrlPattern) || [];
-    const markdownJobUrls = markdown.match(jobUrlPattern) || [];
-    
-    const allPotentialUrls = [...new Set([...links, ...htmlJobUrls, ...markdownJobUrls])];
-    console.log('Potential job URLs found:', allPotentialUrls.length);
-    
-    // Filter for actual job detail pages (must have numeric ID at end)
-    const jobLinks = allPotentialUrls
-      .filter((link: string) => {
-        // Match URLs with job ID (ends with -NUMBERS)
-        const hasJobId = /\/jobs\/[a-z0-9-]+-\d+$/i.test(link);
-        // Or match specific job paths
-        const isJobDetail = link.includes('kariera.gr/jobs/') && 
-          !link.includes('-jobs') && // exclude category pages like /jobs/tourism-jobs
-          link.split('/').pop()?.match(/\d+$/); // must end with digits
-        return hasJobId || isJobDetail;
-      })
-      .slice(0, 5);
-
-    console.log('Found kariera job links:', jobLinks.length, jobLinks);
+    console.log('Search results found:', results.length);
 
     const jobs: JobListing[] = [];
 
-    for (const jobUrl of jobLinks) {
-      try {
-        const jobResponse = await fetch('https://api.firecrawl.dev/v1/scrape', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${apiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            url: jobUrl,
-            formats: ['markdown'],
-            onlyMainContent: true,
-          }),
-        });
+    for (const result of results) {
+      const url = result.url || '';
+      const markdown = result.markdown || '';
+      const title = result.title || 'Unknown Position';
+      
+      // Skip if not a job detail page (must have job-specific URL pattern)
+      if (!url.includes('kariera.gr')) continue;
+      
+      console.log('Processing job URL:', url);
 
-        if (!jobResponse.ok) continue;
+      // Extract company name from content
+      const companyMatch = markdown.match(/(?:εταιρ[ιί]α|company|about|employer)[\s:]+([^\n]+)/i);
+      const company = companyMatch ? companyMatch[1].trim() : 'Company from kariera.gr';
 
-        const jobData = await jobResponse.json();
-        const markdown = jobData.data?.markdown || '';
-        const metadata = jobData.data?.metadata || {};
+      // Extract location
+      const locationMatch = markdown.match(/(?:τοποθεσία|location|περιοχή|area)[\s:]+([^\n]+)/i) ||
+                           markdown.match(/(Αθήνα|Θεσσαλονίκη|Athens|Thessaloniki|Greece)/i);
+      const location = locationMatch ? locationMatch[1]?.trim() || locationMatch[0].trim() : 'Greece';
 
-        const titleMatch = markdown.match(/^#\s*(.+)/m);
-        const title = titleMatch ? titleMatch[1].trim() : metadata.title?.split('|')[0]?.trim() || 'Unknown Position';
-
-        const companyMatch = markdown.match(/(?:εταιρ[ιί]α|company|about)[\s:]+([^\n]+)/i);
-        const company = companyMatch ? companyMatch[1].trim() : 'Company from kariera.gr';
-
-        const locationMatch = markdown.match(/(?:τοποθεσία|location)[\s:]+([^\n]+)/i);
-        const location = locationMatch ? locationMatch[1].trim() : 'Greece';
-
-        jobs.push({
-          job_title: title.substring(0, 200),
-          job_description: markdown.substring(0, 2000),
-          employer_name: company.substring(0, 100),
-          employer_email: 'jobs@kariera.gr',
-          employment_type: detectEmploymentType(markdown),
-          location: location.substring(0, 100),
-          external_url: jobUrl,
-          source: 'kariera.gr',
-        });
-
-        await new Promise(r => setTimeout(r, 500));
-      } catch (err) {
-        console.error('Error scraping kariera job:', jobUrl, err);
-      }
+      jobs.push({
+        job_title: title.substring(0, 200),
+        job_description: markdown.substring(0, 2000),
+        employer_name: company.substring(0, 100),
+        employer_email: 'jobs@kariera.gr',
+        employment_type: detectEmploymentType(markdown),
+        location: location.substring(0, 100),
+        external_url: url, // This is the actual job URL from search results
+        source: 'kariera.gr',
+      });
     }
 
     return jobs;
   } catch (error) {
-    console.error('Error scraping kariera.gr:', error);
+    console.error('Error searching kariera.gr:', error);
     return [];
   }
 }
+
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -300,7 +228,7 @@ serve(async (req) => {
 
     for (const query of searchQueries) {
       if (sources.includes('xe.gr')) {
-        const xeJobs = await scrapeXeGr(FIRECRAWL_API_KEY, query);
+        const xeJobs = await searchXeGr(FIRECRAWL_API_KEY, query);
         allJobs.push(...xeJobs);
       }
       
