@@ -364,15 +364,29 @@ const Auth = () => {
         // Check if user is employer and redirect accordingly
         const { data: employer } = await supabase
           .from('employers')
-          .select('id')
+          .select('id, verification_status')
           .eq('user_id', data.user.id)
           .maybeSingle();
         
         toast.success("Welcome back!");
         if (employer) {
-          navigate('/employer-dashboard');
+          if (employer.verification_status !== 'approved') {
+            navigate('/pending-verification');
+          } else {
+            navigate('/employer-dashboard');
+          }
         } else {
-          navigate('/student-dashboard');
+          const { data: studentProfile } = await supabase
+            .from('profiles')
+            .select('verification_status')
+            .eq('id', data.user.id)
+            .single();
+          
+          if (studentProfile?.verification_status !== 'approved') {
+            navigate('/pending-verification');
+          } else {
+            navigate('/student-dashboard');
+          }
         }
       }
     } catch (error: any) {
