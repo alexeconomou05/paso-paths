@@ -254,12 +254,23 @@ const JobDetail = () => {
                         Apply on External Site
                       </Button>
                     ) : (
-                      <p className="text-sm text-muted-foreground">
-                        Contact the employer at{' '}
-                        <a href={`mailto:${job.employer_email}`} className="text-primary hover:underline">
-                          {job.employer_email}
-                        </a>
-                      </p>
+                      <div className="space-y-3">
+                        <Button 
+                          onClick={() => window.open(`https://www.google.com/search?q=${encodeURIComponent(`${job.job_title} ${job.employer_name} θέση εργασίας`)}`, '_blank')}
+                          size="lg"
+                          variant="outline"
+                          className="w-full"
+                        >
+                          <Search className="mr-2 w-4 h-4" />
+                          Search for this job listing
+                        </Button>
+                        <p className="text-sm text-muted-foreground text-center">
+                          Or contact the employer at{' '}
+                          <a href={`mailto:${job.employer_email}`} className="text-primary hover:underline">
+                            {job.employer_email}
+                          </a>
+                        </p>
+                      </div>
                     )}
                   </CardContent>
                 </Card>
