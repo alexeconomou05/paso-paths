@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
@@ -21,6 +22,7 @@ import EmployerDashboard from "./pages/EmployerDashboard";
 import EmployerProfile from "./pages/EmployerProfile";
 import PostJob from "./pages/PostJob";
 import CompanyReviews from "./pages/CompanyReviews";
+import PendingVerification from "./pages/PendingVerification";
 import NotFound from "./pages/NotFound";
 import CookieConsent from "./components/CookieConsent";
 
@@ -37,6 +39,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/pending-verification" element={<PendingVerification />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/jobs" element={<Jobs />} />
               <Route path="/jobs/:id" element={<JobDetail />} />
@@ -46,11 +49,32 @@ const App = () => (
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/about" element={<About />} />
               <Route path="/settings" element={<Settings />} />
-              <Route path="/student-dashboard" element={<StudentDashboard />} />
-              <Route path="/employer-dashboard" element={<EmployerDashboard />} />
-              <Route path="/employer-profile" element={<EmployerProfile />} />
-              <Route path="/post-job" element={<PostJob />} />
               <Route path="/company-reviews" element={<CompanyReviews />} />
+
+              {/* Student-only routes */}
+              <Route path="/student-dashboard" element={
+                <ProtectedRoute allowedRole="student">
+                  <StudentDashboard />
+                </ProtectedRoute>
+              } />
+
+              {/* Employer-only routes */}
+              <Route path="/employer-dashboard" element={
+                <ProtectedRoute allowedRole="employer">
+                  <EmployerDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/employer-profile" element={
+                <ProtectedRoute allowedRole="employer">
+                  <EmployerProfile />
+                </ProtectedRoute>
+              } />
+              <Route path="/post-job" element={
+                <ProtectedRoute allowedRole="employer">
+                  <PostJob />
+                </ProtectedRoute>
+              } />
+
               <Route path="*" element={<NotFound />} />
             </Routes>
             <CookieConsent />
