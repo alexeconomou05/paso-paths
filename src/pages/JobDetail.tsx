@@ -130,6 +130,16 @@ const JobDetail = () => {
       toast.success("Application submitted successfully!");
       setHasApplied(true);
       setCoverLetter("");
+
+      // Send confirmation email (fire and forget)
+      supabase.functions.invoke('application-confirmation', {
+        body: {
+          studentEmail: profile?.email,
+          studentName: profile?.full_name,
+          jobTitle: job.job_title,
+          employerName: job.employer_name,
+        },
+      }).catch((err) => console.error("Failed to send confirmation email:", err));
     } catch (error: any) {
       toast.error(error.message || "Failed to submit application");
     } finally {
