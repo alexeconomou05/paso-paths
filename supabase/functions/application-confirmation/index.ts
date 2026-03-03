@@ -11,6 +11,7 @@ interface ApplicationEmailRequest {
   studentName: string;
   jobTitle: string;
   employerName: string;
+  employerEmail: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -19,7 +20,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { studentEmail, studentName, jobTitle, employerName }: ApplicationEmailRequest = await req.json();
+    const { studentEmail, studentName, jobTitle, employerName, employerEmail }: ApplicationEmailRequest = await req.json();
 
     if (!studentEmail || !jobTitle) {
       return new Response(
@@ -40,6 +41,7 @@ const handler = async (req: Request): Promise<Response> => {
       },
     });
 
+    // Send confirmation to student
     const firstName = studentName?.split(" ")[0] || "there";
 
     await client.send({
@@ -57,6 +59,35 @@ const handler = async (req: Request): Promise<Response> => {
         </div>
       `,
     });
+
+    // Send notification to employer
+    if (employerEmail) {
+      await client.send({
+        from: "GoHire <gohire.info@gmail.com>",
+        to: employerEmail,
+        subject: `New Application for ${jobTitle}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2 style="color: #1a1a1a;">New Application Received 📩</h2>
+            <p>Hello,</p>
+            <p>A new candidate has applied for your job posting <strong>${jobTitle}</strong>.</p>
+            <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+              <tr>
+                <td style="padding: 8px 0; color: #666;">Applicant</td>
+                <td style="padding: 8px 0; font-weight: bold;">${studentName || 'N/A'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; color: #666;">Email</td>
+                <td style="padding: 8px 0;"><a href="mailto:${studentEmail}" style="color: #2563eb;">${studentEmail}</a></td>
+              </tr>
+            </table>
+            <p>Log in to your GoHire employer dashboard to review their full profile and CV.</p>
+            <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 24px 0;" />
+            <p style="color: #666; font-size: 14px;">The GoHire Team</p>
+          </div>
+        `,
+      });
+    }
 
     await client.close();
 
