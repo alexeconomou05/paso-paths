@@ -131,13 +131,14 @@ const JobDetail = () => {
       setHasApplied(true);
       setCoverLetter("");
 
-      // Send confirmation email (fire and forget)
+      // Send confirmation emails to student + employer (fire and forget)
       supabase.functions.invoke('application-confirmation', {
         body: {
           studentEmail: profile?.email,
           studentName: profile?.full_name,
           jobTitle: job.job_title,
           employerName: job.employer_name,
+          employerEmail: job.employer_email,
         },
       }).catch((err) => console.error("Failed to send confirmation email:", err));
     } catch (error: any) {
