@@ -47,9 +47,10 @@ All colors MUST be HSL.
     --cta: 210 100% 55%;
     --cta-foreground: 0 0% 100%;
     
-    --gradient-hero: linear-gradient(135deg, hsl(195 95% 45%) 0%, hsl(210 100% 55%) 50%, hsl(12 95% 65%) 100%);
-    --gradient-card: linear-gradient(135deg, hsla(195 95% 95% / 0.6) 0%, hsla(210 100% 95% / 0.6) 100%);
-    --gradient-glass: linear-gradient(135deg, hsla(195 95% 98% / 0.4) 0%, hsla(210 100% 98% / 0.3) 100%);
+    --gradient-text: linear-gradient(90deg, hsl(210 100% 60%) 0%, hsl(330 70% 75%) 55%, hsl(35 95% 60%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(210 100% 60%) 0%, hsl(330 70% 75%) 50%, hsl(35 95% 60%) 100%);
+    --gradient-card: linear-gradient(135deg, hsla(210 100% 95% / 0.6) 0%, hsla(330 70% 95% / 0.6) 100%);
+    --gradient-glass: linear-gradient(135deg, hsla(210 100% 98% / 0.4) 0%, hsla(330 70% 98% / 0.3) 100%);
     
     --shadow-soft: 0 8px 32px hsla(195, 95%, 45%, 0.15);
     --shadow-medium: 0 12px 40px hsla(195, 95%, 45%, 0.25);
