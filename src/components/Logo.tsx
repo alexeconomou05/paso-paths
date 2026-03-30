@@ -14,7 +14,7 @@ export const Logo = ({ className = "", size = 'lg' }: LogoProps) => {
   
   return (
     <div className={`font-bold ${sizeClass} ${className} transition-transform hover:scale-105`}>
-      <span className="bg-gradient-to-r from-primary via-cta to-accent bg-clip-text text-transparent">
+      <span className="bg-clip-text text-transparent" style={{ backgroundImage: 'var(--gradient-text)' }}>
         GoHire
       </span>
     </div>
