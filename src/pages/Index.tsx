@@ -78,7 +78,7 @@ const Index = () => {
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 glass-card px-6 py-3 rounded-full mb-8 animate-bounce-in">
             <Sparkles className="w-5 h-5 text-accent animate-wiggle" />
-            <span className="font-semibold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            <span className="font-semibold bg-clip-text text-transparent" style={{ backgroundImage: 'var(--gradient-text)' }}>
               {t('authenticCommunityPlatform')}
             </span>
           </div>
