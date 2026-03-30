@@ -29,7 +29,7 @@ const About = () => {
       <main className="container mx-auto px-4 py-12 max-w-4xl">
         {/* Hero Section */}
         <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+          <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent" style={{ backgroundImage: 'var(--gradient-text)' }}>
             {t('aboutGoHire')}
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">

@@ -84,7 +84,7 @@ const Index = () => {
           </div>
           
           <h1 className="text-5xl md:text-7xl font-extrabold mb-6 leading-tight">
-            <span className="bg-gradient-to-r from-primary via-cta to-accent bg-clip-text text-transparent">
+            <span className="bg-clip-text text-transparent" style={{ backgroundImage: 'var(--gradient-text)' }}>
               {t('signInToFindJobs')}
             </span>
           </h1>

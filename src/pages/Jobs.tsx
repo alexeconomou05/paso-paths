@@ -271,7 +271,7 @@ const Jobs = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Title */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-extrabold mb-3 bg-gradient-to-r from-primary via-cta to-accent bg-clip-text text-transparent">
+          <h1 className="text-4xl md:text-5xl font-extrabold mb-3 bg-clip-text text-transparent" style={{ backgroundImage: 'var(--gradient-text)' }}>
             {t('yourPersonalizedOpportunities')}
           </h1>
           <p className="text-lg text-foreground/70">{t('aiPoweredMatching')}</p>
