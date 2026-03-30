@@ -125,7 +125,8 @@ const EmployerDashboard = () => {
           <div onClick={() => navigate("/")} className="cursor-pointer">
             <Logo className="text-3xl" />
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
+            <EmployerNotifications />
             <Button variant="outline" onClick={() => navigate('/employer-profile')}>
               <Building2 className="mr-2 w-4 h-4" />
               Company Profile

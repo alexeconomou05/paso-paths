@@ -29,7 +29,6 @@ const EmployerNotifications = () => {
   useEffect(() => {
     loadNotifications();
 
-    // Subscribe to realtime notifications
     const channel = supabase
       .channel("employer-notifications")
       .on(
@@ -52,18 +51,18 @@ const EmployerNotifications = () => {
 
   const loadNotifications = async () => {
     const { data } = await supabase
-      .from("employer_notifications")
+      .from("employer_notifications" as any)
       .select("*")
       .order("created_at", { ascending: false })
       .limit(30);
 
-    if (data) setNotifications(data as Notification[]);
+    if (data) setNotifications(data as unknown as Notification[]);
   };
 
   const markAsRead = async (id: string) => {
     await supabase
-      .from("employer_notifications")
-      .update({ is_read: true })
+      .from("employer_notifications" as any)
+      .update({ is_read: true } as any)
       .eq("id", id);
 
     setNotifications((prev) =>
@@ -76,8 +75,8 @@ const EmployerNotifications = () => {
     if (unreadIds.length === 0) return;
 
     await supabase
-      .from("employer_notifications")
-      .update({ is_read: true })
+      .from("employer_notifications" as any)
+      .update({ is_read: true } as any)
       .in("id", unreadIds);
 
     setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
