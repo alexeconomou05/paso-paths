@@ -141,6 +141,31 @@ const JobDetail = () => {
           employerEmail: job.employer_email,
         },
       }).catch((err) => console.error("Failed to send confirmation email:", err));
+
+      // Insert in-app notification for employer (fire and forget)
+      if (job.employer_id) {
+        supabase
+          .from('employers')
+          .select('user_id')
+          .eq('id', job.employer_id)
+          .single()
+          .then(({ data: employer }) => {
+            if (employer?.user_id) {
+              supabase
+                .from('employer_notifications' as any)
+                .insert({
+                  user_id: employer.user_id,
+                  type: 'new_application',
+                  title: `New application for ${job.job_title}`,
+                  message: `${profile?.full_name || 'A candidate'} applied for your ${job.job_title} position.`,
+                  reference_id: id,
+                } as any)
+                .then(({ error: notifErr }) => {
+                  if (notifErr) console.error("Failed to create notification:", notifErr);
+                });
+            }
+          });
+      }
     } catch (error: any) {
       toast.error(error.message || "Failed to submit application");
     } finally {
