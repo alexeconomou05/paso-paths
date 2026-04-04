@@ -53,6 +53,7 @@ const Auth = () => {
     email: "",
     password: "",
     companyName: "",
+    vatNumber: "",
     contactPerson: "",
     phone: "",
     companyWebsite: "",
