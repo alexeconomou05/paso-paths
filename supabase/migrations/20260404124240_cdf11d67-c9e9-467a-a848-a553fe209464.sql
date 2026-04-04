@@ -1,0 +1,1 @@
+ALTER TABLE public.employers ADD COLUMN vat_number text DEFAULT NULL;
