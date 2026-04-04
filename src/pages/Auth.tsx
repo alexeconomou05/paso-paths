@@ -53,6 +53,7 @@ const Auth = () => {
     email: "",
     password: "",
     companyName: "",
+    vatNumber: "",
     contactPerson: "",
     phone: "",
     companyWebsite: "",
@@ -303,6 +304,7 @@ const Auth = () => {
           user_id: authData.user.id,
           company_name: employerSignupData.companyName,
           company_email: employerSignupData.email,
+          vat_number: employerSignupData.vatNumber || null,
           contact_person: employerSignupData.contactPerson,
           phone: employerSignupData.phone,
           company_website: employerSignupData.companyWebsite,
@@ -906,6 +908,15 @@ const Auth = () => {
                       value={employerSignupData.companyName}
                       onChange={(e) => setEmployerSignupData({...employerSignupData, companyName: e.target.value})}
                       required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="vat-number">VAT Number</Label>
+                    <Input
+                      id="vat-number"
+                      placeholder="e.g. EL123456789"
+                      value={employerSignupData.vatNumber}
+                      onChange={(e) => setEmployerSignupData({...employerSignupData, vatNumber: e.target.value})}
                     />
                   </div>
                   <div className="space-y-2">
