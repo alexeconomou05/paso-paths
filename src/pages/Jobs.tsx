@@ -28,6 +28,7 @@ const SALARY_RANGES = [
 
 const Jobs = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { t } = useTranslation();
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,6 +39,7 @@ const Jobs = () => {
   const [selectedEmploymentType, setSelectedEmploymentType] = useState<string>("all");
   const [selectedLocation, setSelectedLocation] = useState<string>("all");
   const [selectedSalaryRange, setSelectedSalaryRange] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState<string>(searchParams.get('search') || "");
   const [filtersLoaded, setFiltersLoaded] = useState(false);
 
   useEffect(() => {
