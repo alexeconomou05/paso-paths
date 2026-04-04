@@ -387,7 +387,7 @@ const Auth = () => {
           if (studentProfile?.verification_status !== 'approved') {
             navigate('/pending-verification');
           } else {
-            navigate('/student-dashboard');
+            navigate('/jobs');
           }
         }
       }
