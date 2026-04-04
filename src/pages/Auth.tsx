@@ -911,12 +911,13 @@ const Auth = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="vat-number">VAT Number</Label>
+                    <Label htmlFor="vat-number">VAT Number *</Label>
                     <Input
                       id="vat-number"
                       placeholder="e.g. EL123456789"
                       value={employerSignupData.vatNumber}
                       onChange={(e) => setEmployerSignupData({...employerSignupData, vatNumber: e.target.value})}
+                      required
                     />
                   </div>
                   <div className="space-y-2">
