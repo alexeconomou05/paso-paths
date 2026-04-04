@@ -276,7 +276,7 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      if (!employerSignupData.email || !employerSignupData.password || !employerSignupData.companyName) {
+      if (!employerSignupData.email || !employerSignupData.password || !employerSignupData.companyName || !employerSignupData.vatNumber) {
         toast.error("Please fill in all required fields");
         setLoading(false);
         return;
