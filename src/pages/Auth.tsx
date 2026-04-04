@@ -335,7 +335,7 @@ const Auth = () => {
       if (loginData.email === 'DEVELOPER' && loginData.password === 'DEVELOPER') {
         localStorage.setItem('developerMode', 'true');
         toast.success("Developer mode activated!");
-        navigate('/student-dashboard');
+        navigate('/jobs');
         setLoading(false);
         return;
       }
