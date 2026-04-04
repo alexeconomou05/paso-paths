@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +28,7 @@ const SALARY_RANGES = [
 
 const Jobs = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { t } = useTranslation();
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,6 +39,7 @@ const Jobs = () => {
   const [selectedEmploymentType, setSelectedEmploymentType] = useState<string>("all");
   const [selectedLocation, setSelectedLocation] = useState<string>("all");
   const [selectedSalaryRange, setSelectedSalaryRange] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState<string>(searchParams.get('search') || "");
   const [filtersLoaded, setFiltersLoaded] = useState(false);
 
   useEffect(() => {
@@ -157,6 +159,17 @@ const Jobs = () => {
       const matchesType = selectedEmploymentType === "all" || job.employment_type === selectedEmploymentType;
       const matchesLocation = selectedLocation === "all" || job.location === selectedLocation;
       
+      // Search query filter
+      let matchesSearch = true;
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        matchesSearch =
+          job.job_title?.toLowerCase().includes(q) ||
+          job.employer_name?.toLowerCase().includes(q) ||
+          job.job_description?.toLowerCase().includes(q) ||
+          job.location?.toLowerCase().includes(q);
+      }
+
       // Salary range filter
       let matchesSalary = true;
       if (selectedSalaryRange !== "all") {
@@ -178,9 +191,9 @@ const Jobs = () => {
         }
       }
       
-      return matchesType && matchesLocation && matchesSalary;
+      return matchesType && matchesLocation && matchesSalary && matchesSearch;
     });
-  }, [jobs, selectedEmploymentType, selectedLocation, selectedSalaryRange]);
+  }, [jobs, selectedEmploymentType, selectedLocation, selectedSalaryRange, searchQuery]);
 
   const isVerified = profile?.verification_status === "approved";
   const hasCompletedProfile = profile?.field_of_study && profile?.bio;
