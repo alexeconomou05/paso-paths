@@ -304,6 +304,7 @@ const Auth = () => {
           user_id: authData.user.id,
           company_name: employerSignupData.companyName,
           company_email: employerSignupData.email,
+          vat_number: employerSignupData.vatNumber || null,
           contact_person: employerSignupData.contactPerson,
           phone: employerSignupData.phone,
           company_website: employerSignupData.companyWebsite,
