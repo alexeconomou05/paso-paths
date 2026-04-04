@@ -159,6 +159,17 @@ const Jobs = () => {
       const matchesType = selectedEmploymentType === "all" || job.employment_type === selectedEmploymentType;
       const matchesLocation = selectedLocation === "all" || job.location === selectedLocation;
       
+      // Search query filter
+      let matchesSearch = true;
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        matchesSearch =
+          job.job_title?.toLowerCase().includes(q) ||
+          job.employer_name?.toLowerCase().includes(q) ||
+          job.job_description?.toLowerCase().includes(q) ||
+          job.location?.toLowerCase().includes(q);
+      }
+
       // Salary range filter
       let matchesSalary = true;
       if (selectedSalaryRange !== "all") {
@@ -180,9 +191,9 @@ const Jobs = () => {
         }
       }
       
-      return matchesType && matchesLocation && matchesSalary;
+      return matchesType && matchesLocation && matchesSalary && matchesSearch;
     });
-  }, [jobs, selectedEmploymentType, selectedLocation, selectedSalaryRange]);
+  }, [jobs, selectedEmploymentType, selectedLocation, selectedSalaryRange, searchQuery]);
 
   const isVerified = profile?.verification_status === "approved";
   const hasCompletedProfile = profile?.field_of_study && profile?.bio;
