@@ -276,7 +276,7 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      if (!employerSignupData.email || !employerSignupData.password || !employerSignupData.companyName) {
+      if (!employerSignupData.email || !employerSignupData.password || !employerSignupData.companyName || !employerSignupData.vatNumber) {
         toast.error("Please fill in all required fields");
         setLoading(false);
         return;
@@ -911,12 +911,13 @@ const Auth = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="vat-number">VAT Number</Label>
+                    <Label htmlFor="vat-number">VAT Number *</Label>
                     <Input
                       id="vat-number"
                       placeholder="e.g. EL123456789"
                       value={employerSignupData.vatNumber}
                       onChange={(e) => setEmployerSignupData({...employerSignupData, vatNumber: e.target.value})}
+                      required
                     />
                   </div>
                   <div className="space-y-2">
