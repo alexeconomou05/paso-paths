@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 interface LogoProps {
   className?: string;
   size?: 'sm' | 'md' | 'lg';
@@ -13,11 +15,11 @@ export const Logo = ({ className = "", size = 'lg' }: LogoProps) => {
   const sizeClass = sizeClasses[size];
   
   return (
-    <div className={`font-bold ${sizeClass} ${className} transition-transform hover:scale-105`}>
+    <Link to="/" className={`font-bold ${sizeClass} ${className} transition-transform hover:scale-105 no-underline`}>
       <span className="bg-clip-text text-transparent" style={{ backgroundImage: 'var(--gradient-text)' }}>
         GoHire
       </span>
-    </div>
+    </Link>
   );
 };
 
