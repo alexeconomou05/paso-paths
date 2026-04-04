@@ -105,7 +105,7 @@ const Auth = () => {
       if (employer) {
         navigate('/employer-dashboard');
       } else {
-        navigate('/student-dashboard');
+        navigate('/jobs');
       }
     } catch (error: any) {
       toast.error(error.message || "Invalid verification code");
@@ -335,7 +335,7 @@ const Auth = () => {
       if (loginData.email === 'DEVELOPER' && loginData.password === 'DEVELOPER') {
         localStorage.setItem('developerMode', 'true');
         toast.success("Developer mode activated!");
-        navigate('/student-dashboard');
+        navigate('/jobs');
         setLoading(false);
         return;
       }
@@ -387,7 +387,7 @@ const Auth = () => {
           if (studentProfile?.verification_status !== 'approved') {
             navigate('/pending-verification');
           } else {
-            navigate('/student-dashboard');
+            navigate('/jobs');
           }
         }
       }
