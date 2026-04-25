@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MapPin, DollarSign, Briefcase, GraduationCap, Sparkles, Loader2, Filter, X } from "lucide-react";
+import { MapPin, DollarSign, Briefcase, GraduationCap, Sparkles, Loader2, Filter, X, Sun } from "lucide-react";
 import { toast } from "sonner";
 import Logo from "@/components/Logo";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -40,6 +40,7 @@ const Jobs = () => {
   const [selectedLocation, setSelectedLocation] = useState<string>("all");
   const [selectedSalaryRange, setSelectedSalaryRange] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>(searchParams.get('search') || "");
+  const [summerMode, setSummerMode] = useState<boolean>(searchParams.get('summer') === '1');
   const [filtersLoaded, setFiltersLoaded] = useState(false);
 
   useEffect(() => {
@@ -191,9 +192,25 @@ const Jobs = () => {
         }
       }
       
-      return matchesType && matchesLocation && matchesSalary && matchesSearch;
+      // Summer mode: only student-friendly summer jobs
+      let matchesSummer = true;
+      if (summerMode) {
+        const text = `${job.job_title || ''} ${job.job_description || ''} ${job.employment_type || ''}`.toLowerCase();
+        const summerKeywords = [
+          'summer', 'intern', 'seasonal', 'camp', 'beach', 'lifeguard',
+          'barista', 'waiter', 'waitress', 'bartender', 'hospitality',
+          'tour', 'festival', 'resort', 'hotel', 'restaurant', 'retail',
+          'student', 'part-time', 'part time', 'temporary', 'holiday',
+          'event', 'sales assistant', 'tutor', 'cashier'
+        ];
+        const typeOk = ['internship', 'part_time'].includes(job.employment_type);
+        const keywordOk = summerKeywords.some(k => text.includes(k));
+        matchesSummer = typeOk || keywordOk;
+      }
+
+      return matchesType && matchesLocation && matchesSalary && matchesSearch && matchesSummer;
     });
-  }, [jobs, selectedEmploymentType, selectedLocation, selectedSalaryRange, searchQuery]);
+  }, [jobs, selectedEmploymentType, selectedLocation, selectedSalaryRange, searchQuery, summerMode]);
 
   const isVerified = profile?.verification_status === "approved";
   const hasCompletedProfile = profile?.field_of_study && profile?.bio;
@@ -263,8 +280,31 @@ const Jobs = () => {
 
   const hasActiveFilters = selectedEmploymentType !== "all" || selectedLocation !== "all" || selectedSalaryRange !== "all";
 
+  const summerBg = summerMode
+    ? { background: 'linear-gradient(135deg, #fef3c7 0%, #fed7aa 35%, #fbcfe8 70%, #bae6fd 100%)' }
+    : undefined;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10">
+    <div
+      className={summerMode ? "min-h-screen" : "min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10"}
+      style={summerBg}
+    >
+      {/* Floating Summer Mode Toggle */}
+      <button
+        type="button"
+        onClick={() => setSummerMode(v => !v)}
+        title={summerMode ? "Exit summer mode" : "Activate summer mode"}
+        aria-label="Toggle summer mode"
+        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 inline-flex items-center gap-2 px-5 py-3 rounded-full text-white font-bold shadow-strong hover:scale-110 transition-all duration-300"
+        style={{
+          background: summerMode
+            ? 'linear-gradient(135deg, #38bdf8 0%, #818cf8 100%)'
+            : 'linear-gradient(135deg, #fde047 0%, #fb923c 50%, #f43f5e 100%)',
+        }}
+      >
+        <Sun className={`w-5 h-5 ${summerMode ? '' : 'animate-pulse'}`} />
+        <span className="text-sm">{summerMode ? 'Exit Summer Mode' : 'Summer Jobs'}</span>
+      </button>
       {/* Header */}
       <header className="glass border-b border-glass-border sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">

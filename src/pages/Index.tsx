@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, Users, Briefcase, ArrowRight, MessageSquare, Search, Lock } from "lucide-react";
+import { Sparkles, Users, Briefcase, ArrowRight, MessageSquare, Search, Lock, Sun } from "lucide-react";
 import Logo from "@/components/Logo";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -54,6 +54,17 @@ const Index = () => {
     if (searchQuery.trim()) {
       navigate(`/jobs?search=${encodeURIComponent(searchQuery.trim())}`);
     }
+  };
+
+  const handleSummerMode = () => {
+    if (!user) {
+      toast.error("Please sign in to browse summer jobs");
+      navigate('/auth');
+      return;
+    }
+    toast.success("☀️ Summer mode activated!");
+    const q = searchQuery.trim();
+    navigate(`/jobs?summer=1${q ? `&search=${encodeURIComponent(q)}` : ''}`);
   };
 
   const tabs = [
@@ -147,6 +158,23 @@ const Index = () => {
               </button>{" "}to search and browse jobs
             </p>
           )}
+          {/* Summer mode toggle - bottom center */}
+          <div className="flex justify-center mt-4">
+            <button
+              type="button"
+              onClick={handleSummerMode}
+              title="Switch to Summer Mode — student summer jobs only"
+              aria-label="Activate summer mode"
+              className="group inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-white font-semibold shadow-strong hover:scale-110 transition-all duration-300"
+              style={{
+                background:
+                  'linear-gradient(135deg, #fde047 0%, #fb923c 50%, #f43f5e 100%)',
+              }}
+            >
+              <Sun className="w-5 h-5 group-hover:rotate-90 transition-transform duration-500" />
+              <span className="text-sm">Summer Jobs</span>
+            </button>
+          </div>
         </form>
       </div>
 
