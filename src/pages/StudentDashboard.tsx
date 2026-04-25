@@ -9,6 +9,7 @@ import { Briefcase, MapPin, Clock, ExternalLink, User, Settings, GraduationCap, 
 import Logo from "@/components/Logo";
 import { useTranslation } from "@/hooks/useTranslation";
 import ProfileCompletion from "@/components/ProfileCompletion";
+import DailyCheckIn from "@/components/DailyCheckIn";
 
 interface JobPosting {
   id: string;
@@ -180,6 +181,13 @@ const StudentDashboard = () => {
             <ProfileCompletion profile={profile} />
           </div>
         </div>
+
+        {/* Daily Check-In */}
+        {profile?.id && (
+          <div className="mb-8">
+            <DailyCheckIn userId={profile.id} />
+          </div>
+        )}
 
         {/* Profile Status Card */}
         {profile?.verification_status !== 'approved' && (

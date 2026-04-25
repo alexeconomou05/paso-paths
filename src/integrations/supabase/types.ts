@@ -103,6 +103,66 @@ export type Database = {
           },
         ]
       }
+      daily_checkins: {
+        Row: {
+          checkin_date: string
+          created_at: string
+          day_number: number
+          id: string
+          points_awarded: number
+          prize_name: string | null
+          user_id: string
+        }
+        Insert: {
+          checkin_date: string
+          created_at?: string
+          day_number: number
+          id?: string
+          points_awarded?: number
+          prize_name?: string | null
+          user_id: string
+        }
+        Update: {
+          checkin_date?: string
+          created_at?: string
+          day_number?: number
+          id?: string
+          points_awarded?: number
+          prize_name?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      daily_prizes: {
+        Row: {
+          created_at: string
+          day_number: number
+          description: string | null
+          id: string
+          name: string
+          points: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          day_number: number
+          description?: string | null
+          id?: string
+          name: string
+          points?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          day_number?: number
+          description?: string | null
+          id?: string
+          name?: string
+          points?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       email_otps: {
         Row: {
           created_at: string
@@ -263,6 +323,7 @@ export type Database = {
           bio: string | null
           career_interests: string | null
           created_at: string
+          current_streak_day: number
           cv_url: string | null
           email: string
           email_verified: boolean | null
@@ -272,10 +333,14 @@ export type Database = {
           id: string
           job_filter_preferences: Json | null
           job_notifications_enabled: boolean | null
+          last_checkin_date: string | null
+          monthly_strikes_used: number
           paso_document_url: string | null
           paso_number: string | null
           photo_url: string | null
           preferred_employment_types: string[] | null
+          strikes_month: string | null
+          total_points: number
           university: string | null
           updated_at: string
           verification_status:
@@ -286,6 +351,7 @@ export type Database = {
           bio?: string | null
           career_interests?: string | null
           created_at?: string
+          current_streak_day?: number
           cv_url?: string | null
           email: string
           email_verified?: boolean | null
@@ -295,10 +361,14 @@ export type Database = {
           id: string
           job_filter_preferences?: Json | null
           job_notifications_enabled?: boolean | null
+          last_checkin_date?: string | null
+          monthly_strikes_used?: number
           paso_document_url?: string | null
           paso_number?: string | null
           photo_url?: string | null
           preferred_employment_types?: string[] | null
+          strikes_month?: string | null
+          total_points?: number
           university?: string | null
           updated_at?: string
           verification_status?:
@@ -309,6 +379,7 @@ export type Database = {
           bio?: string | null
           career_interests?: string | null
           created_at?: string
+          current_streak_day?: number
           cv_url?: string | null
           email?: string
           email_verified?: boolean | null
@@ -318,10 +389,14 @@ export type Database = {
           id?: string
           job_filter_preferences?: Json | null
           job_notifications_enabled?: boolean | null
+          last_checkin_date?: string | null
+          monthly_strikes_used?: number
           paso_document_url?: string | null
           paso_number?: string | null
           photo_url?: string | null
           preferred_employment_types?: string[] | null
+          strikes_month?: string | null
+          total_points?: number
           university?: string | null
           updated_at?: string
           verification_status?:

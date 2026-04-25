@@ -225,6 +225,10 @@ const Admin = () => {
             <Plus className="w-4 h-4" />
             Add External Job
           </Button>
+          <Button variant="outline" onClick={() => navigate('/admin/prizes')} className="gap-2">
+            <Plus className="w-4 h-4" />
+            Manage Prizes
+          </Button>
           <Button variant="ghost" onClick={handleLogout} className="gap-2">
             <LogOut className="w-4 h-4" />
             Logout
