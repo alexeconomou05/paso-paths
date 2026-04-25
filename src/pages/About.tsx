@@ -15,7 +15,6 @@ const About = () => {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <Logo size="sm" />
-            <span className="font-bold text-xl">GoHire</span>
           </Link>
           <Button variant="ghost" size="sm" asChild>
             <Link to="/" className="gap-2">
