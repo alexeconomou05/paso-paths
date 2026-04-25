@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, Users, Briefcase, ArrowRight, MessageSquare, Search, Lock } from "lucide-react";
+import { Sparkles, Users, Briefcase, ArrowRight, MessageSquare, Search, Lock, Sun } from "lucide-react";
 import Logo from "@/components/Logo";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
