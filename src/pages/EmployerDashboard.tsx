@@ -141,6 +141,26 @@ const EmployerDashboard = () => {
             <Logo className="text-3xl" />
           </div>
           <div className="flex gap-2 items-center">
+            {streakInfo && streakInfo.current_streak_day > 0 && (
+              <Badge 
+                variant="outline" 
+                className="bg-orange-500/20 text-orange-400 border-orange-500/50 flex items-center gap-1 px-3 py-1"
+              >
+                <Flame className="w-4 h-4" />
+                <span className="font-bold">{streakInfo.current_streak_day}</span>
+                <span className="text-xs">day streak</span>
+              </Badge>
+            )}
+            {streakInfo && streakInfo.total_points > 0 && (
+              <Badge 
+                variant="outline" 
+                className="bg-primary/20 text-primary border-primary/50 flex items-center gap-1 px-3 py-1"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span className="font-bold">{streakInfo.total_points}</span>
+                <span className="text-xs">pts</span>
+              </Badge>
+            )}
             <EmployerNotifications />
             <Button variant="outline" onClick={() => navigate('/employer-profile')}>
               <Building2 className="mr-2 w-4 h-4" />
