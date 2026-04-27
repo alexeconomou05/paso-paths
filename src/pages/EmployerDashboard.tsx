@@ -32,6 +32,7 @@ const EmployerDashboard = () => {
   const [jobs, setJobs] = useState<JobPosting[]>([]);
   const [employer, setEmployer] = useState<any>(null);
   const [analytics, setAnalytics] = useState<Record<string, JobAnalytics>>({});
+  const [streakInfo, setStreakInfo] = useState<{ current_streak_day: number; total_points: number } | null>(null);
 
   useEffect(() => {
     checkAuthAndLoad();
