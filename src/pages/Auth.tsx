@@ -106,7 +106,7 @@ const Auth = () => {
       if (employer) {
         navigate('/employer-dashboard');
       } else {
-        navigate('/jobs');
+        navigate('/');
       }
     } catch (error: any) {
       toast.error(error.message || "Invalid verification code");
