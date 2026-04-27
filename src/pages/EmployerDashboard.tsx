@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Eye, MousePointer, Heart, Building2, Settings, BarChart3, Briefcase, MapPin, Calendar } from "lucide-react";
+import { Plus, Eye, MousePointer, Heart, Building2, Settings, BarChart3, Briefcase, MapPin, Calendar, Flame, Sparkles } from "lucide-react";
 import Logo from "@/components/Logo";
 import EmployerNotifications from "@/components/EmployerNotifications";
 
@@ -32,6 +32,7 @@ const EmployerDashboard = () => {
   const [jobs, setJobs] = useState<JobPosting[]>([]);
   const [employer, setEmployer] = useState<any>(null);
   const [analytics, setAnalytics] = useState<Record<string, JobAnalytics>>({});
+  const [streakInfo, setStreakInfo] = useState<{ current_streak_day: number; total_points: number } | null>(null);
 
   useEffect(() => {
     checkAuthAndLoad();
@@ -59,6 +60,20 @@ const EmployerDashboard = () => {
       }
 
       setEmployer(employerData);
+
+      // Load streak info from profile
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('current_streak_day, total_points')
+        .eq('id', user.id)
+        .single();
+      
+      if (profileData) {
+        setStreakInfo({
+          current_streak_day: profileData.current_streak_day || 0,
+          total_points: profileData.total_points || 0
+        });
+      }
 
       // Load employer's job postings
       const { data: jobsData, error } = await supabase
@@ -126,6 +141,26 @@ const EmployerDashboard = () => {
             <Logo className="text-3xl" />
           </div>
           <div className="flex gap-2 items-center">
+            {streakInfo && streakInfo.current_streak_day > 0 && (
+              <Badge 
+                variant="outline" 
+                className="bg-orange-500/20 text-orange-400 border-orange-500/50 flex items-center gap-1 px-3 py-1"
+              >
+                <Flame className="w-4 h-4" />
+                <span className="font-bold">{streakInfo.current_streak_day}</span>
+                <span className="text-xs">day streak</span>
+              </Badge>
+            )}
+            {streakInfo && streakInfo.total_points > 0 && (
+              <Badge 
+                variant="outline" 
+                className="bg-primary/20 text-primary border-primary/50 flex items-center gap-1 px-3 py-1"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span className="font-bold">{streakInfo.total_points}</span>
+                <span className="text-xs">pts</span>
+              </Badge>
+            )}
             <EmployerNotifications />
             <Button variant="outline" onClick={() => navigate('/employer-profile')}>
               <Building2 className="mr-2 w-4 h-4" />

@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Briefcase, MapPin, Clock, ExternalLink, User, Settings, GraduationCap, Sparkles } from "lucide-react";
+import { Briefcase, MapPin, Clock, ExternalLink, User, Settings, GraduationCap, Sparkles, Flame } from "lucide-react";
 import Logo from "@/components/Logo";
 import { useTranslation } from "@/hooks/useTranslation";
 import ProfileCompletion from "@/components/ProfileCompletion";
@@ -30,6 +30,7 @@ const StudentDashboard = () => {
   const [jobs, setJobs] = useState<JobPosting[]>([]);
   const [profile, setProfile] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'field' | 'interests'>('field');
+  const [streakInfo, setStreakInfo] = useState<{ current_streak_day: number; total_points: number } | null>(null);
 
   useEffect(() => {
     checkAuthAndLoad();
@@ -91,6 +92,14 @@ const StudentDashboard = () => {
         .single();
 
       setProfile(profileData);
+      
+      // Load streak info
+      if (profileData) {
+        setStreakInfo({
+          current_streak_day: profileData.current_streak_day || 0,
+          total_points: profileData.total_points || 0
+        });
+      }
 
       // Load jobs
       const { data: jobsData, error } = await supabase
@@ -151,7 +160,27 @@ const StudentDashboard = () => {
           <div onClick={() => navigate("/")} className="cursor-pointer">
             <Logo className="text-3xl" />
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
+            {streakInfo && streakInfo.current_streak_day > 0 && (
+              <Badge 
+                variant="outline" 
+                className="bg-orange-500/20 text-orange-400 border-orange-500/50 flex items-center gap-1 px-3 py-1"
+              >
+                <Flame className="w-4 h-4" />
+                <span className="font-bold">{streakInfo.current_streak_day}</span>
+                <span className="text-xs">day streak</span>
+              </Badge>
+            )}
+            {streakInfo && streakInfo.total_points > 0 && (
+              <Badge 
+                variant="outline" 
+                className="bg-primary/20 text-primary border-primary/50 flex items-center gap-1 px-3 py-1"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span className="font-bold">{streakInfo.total_points}</span>
+                <span className="text-xs">pts</span>
+              </Badge>
+            )}
             <Button variant="outline" onClick={() => navigate('/profile')}>
               <User className="mr-2 w-4 h-4" />
               Profile
