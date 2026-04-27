@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, Users, Briefcase, ArrowRight, MessageSquare, Search, Lock, Sun } from "lucide-react";
+import { Sparkles, Users, Briefcase, ArrowRight, MessageSquare, Search, Lock, Sun, Flame } from "lucide-react";
 import Logo from "@/components/Logo";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,22 +12,47 @@ const Index = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<'home' | 'jobs' | 'profile' | 'about'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'jobs' | 'streak' | 'profile' | 'about'>('home');
   const [searchQuery, setSearchQuery] = useState("");
+  const [streak, setStreak] = useState<{ current_streak_day: number; total_points: number } | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        loadStreak(session.user.id);
+      } else {
+        setStreak(null);
+      }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        loadStreak(session.user.id);
+      } else {
+        setStreak(null);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const handleTabClick = (tab: 'home' | 'jobs' | 'profile' | 'about') => {
+  const loadStreak = async (userId: string) => {
+    const { data } = await supabase
+      .from('profiles')
+      .select('current_streak_day, total_points')
+      .eq('id', userId)
+      .maybeSingle();
+    if (data) {
+      setStreak({
+        current_streak_day: data.current_streak_day || 0,
+        total_points: data.total_points || 0,
+      });
+    }
+  };
+
+  const handleTabClick = (tab: 'home' | 'jobs' | 'streak' | 'profile' | 'about') => {
     if (tab === 'jobs') {
       navigate('/jobs');
     } else if (tab === 'profile') {
@@ -39,6 +64,13 @@ const Index = () => {
       }
     } else if (tab === 'about') {
       navigate('/about');
+    } else if (tab === 'streak') {
+      if (!user) {
+        toast.error("Please sign in to view your streak");
+        navigate('/auth');
+      } else {
+        setActiveTab('streak');
+      }
     } else {
       setActiveTab('home');
     }
@@ -70,6 +102,7 @@ const Index = () => {
   const tabs = [
     { id: 'home' as const, label: 'Home' },
     { id: 'jobs' as const, label: 'Jobs' },
+    { id: 'streak' as const, label: '🔥 Streak' },
     { id: 'profile' as const, label: 'Profile' },
     { id: 'about' as const, label: 'About Us' },
   ];
@@ -131,6 +164,7 @@ const Index = () => {
       </nav>
 
       {/* Search Bar */}
+      {activeTab === 'home' && (
       <div className="relative z-10 container mx-auto px-4 pt-6">
         <form onSubmit={handleSearch} className="max-w-2xl mx-auto">
           <div className="relative">
@@ -177,8 +211,53 @@ const Index = () => {
           </div>
         </form>
       </div>
+      )}
+
+      {/* Streak Tab Content */}
+      {activeTab === 'streak' && user && (
+        <section className="relative z-10 container mx-auto px-4 py-12">
+          <div className="max-w-2xl mx-auto">
+            <div className="glass-card rounded-3xl p-8 text-center">
+              <div className="inline-flex items-center justify-center w-24 h-24 rounded-full mb-6 shadow-strong"
+                   style={{ background: 'linear-gradient(135deg, #fb923c 0%, #f43f5e 100%)' }}>
+                <Flame className="w-12 h-12 text-white" />
+              </div>
+              <h1 className="text-4xl md:text-5xl font-extrabold mb-2 bg-clip-text text-transparent"
+                  style={{ backgroundImage: 'var(--gradient-text)' }}>
+                {streak?.current_streak_day ?? 0} Day{(streak?.current_streak_day ?? 0) === 1 ? '' : 's'}
+              </h1>
+              <p className="text-muted-foreground mb-6">Your current daily check-in streak</p>
+
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                <div className="glass-card rounded-2xl p-5">
+                  <p className="text-3xl font-extrabold text-orange-400">
+                    {streak?.current_streak_day ?? 0}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">Day Streak</p>
+                </div>
+                <div className="glass-card rounded-2xl p-5">
+                  <p className="text-3xl font-extrabold bg-clip-text text-transparent"
+                     style={{ backgroundImage: 'var(--gradient-text)' }}>
+                    {streak?.total_points ?? 0}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">Total Points</p>
+                </div>
+              </div>
+
+              <Button
+                onClick={() => navigate('/student-dashboard')}
+                className="bg-cta hover:bg-cta/90 text-cta-foreground font-semibold rounded-full px-8"
+              >
+                Open Daily Check-In
+                <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Hero Section */}
+      {activeTab === 'home' && (
       <section className="relative z-10 container mx-auto px-4 py-16 md:py-24">
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 glass-card px-6 py-3 rounded-full mb-8 animate-bounce-in">
@@ -224,8 +303,10 @@ const Index = () => {
           </div>
         </div>
       </section>
+      )}
 
       {/* Features Grid */}
+      {activeTab === 'home' && (
       <section className="relative z-10 container mx-auto px-4 py-16 pb-24">
         <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
           <div className="glass-card p-8 rounded-3xl hover:scale-105 transition-all duration-300 border-l-4 border-primary">
@@ -245,6 +326,7 @@ const Index = () => {
           </div>
         </div>
       </section>
+      )}
 
       {/* Footer */}
       <footer className="relative z-10 glass border-t border-glass-border py-8 mt-auto">

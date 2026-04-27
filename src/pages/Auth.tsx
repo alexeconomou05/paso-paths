@@ -64,6 +64,7 @@ const Auth = () => {
     email: "",
     password: ""
   });
+  const [rememberMe, setRememberMe] = useState(true);
 
   const [forgotEmail, setForgotEmail] = useState("");
   const [showLoginPassword, setShowLoginPassword] = useState(false);
@@ -105,7 +106,7 @@ const Auth = () => {
       if (employer) {
         navigate('/employer-dashboard');
       } else {
-        navigate('/jobs');
+        navigate('/');
       }
     } catch (error: any) {
       toast.error(error.message || "Invalid verification code");
@@ -335,7 +336,7 @@ const Auth = () => {
       if (loginData.email === 'DEVELOPER' && loginData.password === 'DEVELOPER') {
         localStorage.setItem('developerMode', 'true');
         toast.success("Developer mode activated!");
-        navigate('/jobs');
+        navigate('/');
         setLoading(false);
         return;
       }
@@ -343,12 +344,33 @@ const Auth = () => {
       // Clear developer mode if logging in normally
       localStorage.removeItem('developerMode');
 
+      // Remember me: persist session in localStorage if checked, else session-only
+      if (!rememberMe) {
+        try {
+          // Move any existing token out of localStorage so it doesn't persist
+          const keys = Object.keys(localStorage).filter((k) => k.startsWith('sb-') && k.endsWith('-auth-token'));
+          keys.forEach((k) => localStorage.removeItem(k));
+        } catch {}
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email: loginData.email,
         password: loginData.password
       });
 
       if (error) throw error;
+
+      // If user opted out of remember me, mirror token to sessionStorage and clear from localStorage
+      if (!rememberMe) {
+        try {
+          const keys = Object.keys(localStorage).filter((k) => k.startsWith('sb-') && k.endsWith('-auth-token'));
+          keys.forEach((k) => {
+            const v = localStorage.getItem(k);
+            if (v) sessionStorage.setItem(k, v);
+            localStorage.removeItem(k);
+          });
+        } catch {}
+      }
 
       const { data: profile } = await supabase
         .from('profiles')
@@ -363,19 +385,19 @@ const Auth = () => {
         setAuthStep('otp-verification');
         toast.info("Please verify your email to continue");
       } else {
-        // Check if user is employer and redirect accordingly
+        // Check verification status; if not approved, send to pending. Otherwise, home.
         const { data: employer } = await supabase
           .from('employers')
           .select('id, verification_status')
           .eq('user_id', data.user.id)
           .maybeSingle();
-        
+
         toast.success("Welcome back!");
         if (employer) {
           if (employer.verification_status !== 'approved') {
             navigate('/pending-verification');
           } else {
-            navigate('/employer-dashboard');
+            navigate('/');
           }
         } else {
           const { data: studentProfile } = await supabase
@@ -383,11 +405,11 @@ const Auth = () => {
             .select('verification_status')
             .eq('id', data.user.id)
             .single();
-          
+
           if (studentProfile?.verification_status !== 'approved') {
             navigate('/pending-verification');
           } else {
-            navigate('/jobs');
+            navigate('/');
           }
         }
       }
@@ -783,6 +805,18 @@ const Auth = () => {
                     "Sign In"
                   )}
                 </Button>
+                <div className="flex items-center gap-2 pt-1">
+                  <input
+                    id="remember-me"
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="w-4 h-4 rounded border-foreground/30 accent-primary cursor-pointer"
+                  />
+                  <Label htmlFor="remember-me" className="text-sm font-normal cursor-pointer select-none">
+                    Remember me
+                  </Label>
+                </div>
                 <Button 
                   type="button" 
                   variant="link" 
