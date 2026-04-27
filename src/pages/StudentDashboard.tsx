@@ -30,6 +30,7 @@ const StudentDashboard = () => {
   const [jobs, setJobs] = useState<JobPosting[]>([]);
   const [profile, setProfile] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'field' | 'interests'>('field');
+  const [streakInfo, setStreakInfo] = useState<{ current_streak_day: number; total_points: number } | null>(null);
 
   useEffect(() => {
     checkAuthAndLoad();
