@@ -164,6 +164,7 @@ const Index = () => {
       </nav>
 
       {/* Search Bar */}
+      {activeTab === 'home' && (
       <div className="relative z-10 container mx-auto px-4 pt-6">
         <form onSubmit={handleSearch} className="max-w-2xl mx-auto">
           <div className="relative">
@@ -210,6 +211,50 @@ const Index = () => {
           </div>
         </form>
       </div>
+      )}
+
+      {/* Streak Tab Content */}
+      {activeTab === 'streak' && user && (
+        <section className="relative z-10 container mx-auto px-4 py-12">
+          <div className="max-w-2xl mx-auto">
+            <div className="glass-card rounded-3xl p-8 text-center">
+              <div className="inline-flex items-center justify-center w-24 h-24 rounded-full mb-6 shadow-strong"
+                   style={{ background: 'linear-gradient(135deg, #fb923c 0%, #f43f5e 100%)' }}>
+                <Flame className="w-12 h-12 text-white" />
+              </div>
+              <h1 className="text-4xl md:text-5xl font-extrabold mb-2 bg-clip-text text-transparent"
+                  style={{ backgroundImage: 'var(--gradient-text)' }}>
+                {streak?.current_streak_day ?? 0} Day{(streak?.current_streak_day ?? 0) === 1 ? '' : 's'}
+              </h1>
+              <p className="text-muted-foreground mb-6">Your current daily check-in streak</p>
+
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                <div className="glass-card rounded-2xl p-5">
+                  <p className="text-3xl font-extrabold text-orange-400">
+                    {streak?.current_streak_day ?? 0}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">Day Streak</p>
+                </div>
+                <div className="glass-card rounded-2xl p-5">
+                  <p className="text-3xl font-extrabold bg-clip-text text-transparent"
+                     style={{ backgroundImage: 'var(--gradient-text)' }}>
+                    {streak?.total_points ?? 0}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">Total Points</p>
+                </div>
+              </div>
+
+              <Button
+                onClick={() => navigate('/student-dashboard')}
+                className="bg-cta hover:bg-cta/90 text-cta-foreground font-semibold rounded-full px-8"
+              >
+                Open Daily Check-In
+                <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Hero Section */}
       <section className="relative z-10 container mx-auto px-4 py-16 md:py-24">
