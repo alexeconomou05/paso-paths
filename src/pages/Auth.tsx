@@ -341,8 +341,18 @@ const Auth = () => {
         return;
       }
 
+      // Admin backdoor - instant admin access for testing
+      if (loginData.email === 'admin' && loginData.password === 'admin') {
+        localStorage.setItem('adminMode', 'true');
+        toast.success("Admin mode activated!");
+        navigate('/admin');
+        setLoading(false);
+        return;
+      }
+
       // Clear developer mode if logging in normally
       localStorage.removeItem('developerMode');
+      localStorage.removeItem('adminMode');
 
       // Remember me preference: if false, session will be cleared when the tab closes.
       // We persist the preference and let a global listener handle the cleanup,

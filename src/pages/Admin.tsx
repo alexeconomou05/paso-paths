@@ -47,6 +47,13 @@ const Admin = () => {
 
   const checkAdminAccess = async () => {
     try {
+      // Admin backdoor - bypass auth + role checks for testing
+      if (localStorage.getItem('adminMode') === 'true') {
+        setIsAdmin(true);
+        fetchProfiles();
+        return;
+      }
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         navigate('/auth');
