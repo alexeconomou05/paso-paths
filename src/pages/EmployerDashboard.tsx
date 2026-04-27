@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Eye, MousePointer, Heart, Building2, Settings, BarChart3, Briefcase, MapPin, Calendar } from "lucide-react";
+import { Plus, Eye, MousePointer, Heart, Building2, Settings, BarChart3, Briefcase, MapPin, Calendar, Flame, Sparkles } from "lucide-react";
 import Logo from "@/components/Logo";
 import EmployerNotifications from "@/components/EmployerNotifications";
 
