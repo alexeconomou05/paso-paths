@@ -92,6 +92,14 @@ const StudentDashboard = () => {
         .single();
 
       setProfile(profileData);
+      
+      // Load streak info
+      if (profileData) {
+        setStreakInfo({
+          current_streak_day: profileData.current_streak_day || 0,
+          total_points: profileData.total_points || 0
+        });
+      }
 
       // Load jobs
       const { data: jobsData, error } = await supabase
