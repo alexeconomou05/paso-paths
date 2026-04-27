@@ -61,6 +61,20 @@ const EmployerDashboard = () => {
 
       setEmployer(employerData);
 
+      // Load streak info from profile
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('current_streak_day, total_points')
+        .eq('id', user.id)
+        .single();
+      
+      if (profileData) {
+        setStreakInfo({
+          current_streak_day: profileData.current_streak_day || 0,
+          total_points: profileData.total_points || 0
+        });
+      }
+
       // Load employer's job postings
       const { data: jobsData, error } = await supabase
         .from('job_postings')
