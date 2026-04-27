@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -29,7 +30,26 @@ import CookieConsent from "./components/CookieConsent";
 
 const queryClient = new QueryClient();
 
-const App = () => (
+const App = () => {
+  // Honor "Remember me": if the user opted out at sign-in, sign them out
+  // when the tab is closed so the session does not persist.
+  useEffect(() => {
+    const handleUnload = () => {
+      if (localStorage.getItem('clearSessionOnUnload') === 'true') {
+        try {
+          const keys = Object.keys(localStorage).filter(
+            (k) => k.startsWith('sb-') && k.endsWith('-auth-token')
+          );
+          keys.forEach((k) => localStorage.removeItem(k));
+          localStorage.removeItem('clearSessionOnUnload');
+        } catch {}
+      }
+    };
+    window.addEventListener('beforeunload', handleUnload);
+    return () => window.removeEventListener('beforeunload', handleUnload);
+  }, []);
+
+  return (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
       <LanguageProvider>
@@ -86,5 +106,6 @@ const App = () => (
     </ThemeProvider>
   </QueryClientProvider>
 );
+};
 
 export default App;
