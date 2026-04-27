@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Briefcase, MapPin, Clock, ExternalLink, User, Settings, GraduationCap, Sparkles } from "lucide-react";
+import { Briefcase, MapPin, Clock, ExternalLink, User, Settings, GraduationCap, Sparkles, Flame } from "lucide-react";
 import Logo from "@/components/Logo";
 import { useTranslation } from "@/hooks/useTranslation";
 import ProfileCompletion from "@/components/ProfileCompletion";
