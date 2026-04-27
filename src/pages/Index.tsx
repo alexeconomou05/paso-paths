@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, Users, Briefcase, ArrowRight, MessageSquare, Search, Lock, Sun } from "lucide-react";
+import { Sparkles, Users, Briefcase, ArrowRight, MessageSquare, Search, Lock, Sun, Flame } from "lucide-react";
 import Logo from "@/components/Logo";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,22 +12,47 @@ const Index = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<'home' | 'jobs' | 'profile' | 'about'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'jobs' | 'streak' | 'profile' | 'about'>('home');
   const [searchQuery, setSearchQuery] = useState("");
+  const [streak, setStreak] = useState<{ current_streak_day: number; total_points: number } | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        loadStreak(session.user.id);
+      } else {
+        setStreak(null);
+      }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        loadStreak(session.user.id);
+      } else {
+        setStreak(null);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const handleTabClick = (tab: 'home' | 'jobs' | 'profile' | 'about') => {
+  const loadStreak = async (userId: string) => {
+    const { data } = await supabase
+      .from('profiles')
+      .select('current_streak_day, total_points')
+      .eq('id', userId)
+      .maybeSingle();
+    if (data) {
+      setStreak({
+        current_streak_day: data.current_streak_day || 0,
+        total_points: data.total_points || 0,
+      });
+    }
+  };
+
+  const handleTabClick = (tab: 'home' | 'jobs' | 'streak' | 'profile' | 'about') => {
     if (tab === 'jobs') {
       navigate('/jobs');
     } else if (tab === 'profile') {
@@ -39,6 +64,13 @@ const Index = () => {
       }
     } else if (tab === 'about') {
       navigate('/about');
+    } else if (tab === 'streak') {
+      if (!user) {
+        toast.error("Please sign in to view your streak");
+        navigate('/auth');
+      } else {
+        setActiveTab('streak');
+      }
     } else {
       setActiveTab('home');
     }
@@ -70,6 +102,7 @@ const Index = () => {
   const tabs = [
     { id: 'home' as const, label: 'Home' },
     { id: 'jobs' as const, label: 'Jobs' },
+    { id: 'streak' as const, label: '🔥 Streak' },
     { id: 'profile' as const, label: 'Profile' },
     { id: 'about' as const, label: 'About Us' },
   ];
