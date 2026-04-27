@@ -344,13 +344,13 @@ const Auth = () => {
       // Clear developer mode if logging in normally
       localStorage.removeItem('developerMode');
 
-      // Remember me: persist session in localStorage if checked, else session-only
-      if (!rememberMe) {
-        try {
-          // Move any existing token out of localStorage so it doesn't persist
-          const keys = Object.keys(localStorage).filter((k) => k.startsWith('sb-') && k.endsWith('-auth-token'));
-          keys.forEach((k) => localStorage.removeItem(k));
-        } catch {}
+      // Remember me preference: if false, session will be cleared when the tab closes.
+      // We persist the preference and let a global listener handle the cleanup,
+      // so we don't interfere with Supabase's own token storage here.
+      if (rememberMe) {
+        localStorage.removeItem('clearSessionOnUnload');
+      } else {
+        localStorage.setItem('clearSessionOnUnload', 'true');
       }
 
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -359,18 +359,6 @@ const Auth = () => {
       });
 
       if (error) throw error;
-
-      // If user opted out of remember me, mirror token to sessionStorage and clear from localStorage
-      if (!rememberMe) {
-        try {
-          const keys = Object.keys(localStorage).filter((k) => k.startsWith('sb-') && k.endsWith('-auth-token'));
-          keys.forEach((k) => {
-            const v = localStorage.getItem(k);
-            if (v) sessionStorage.setItem(k, v);
-            localStorage.removeItem(k);
-          });
-        } catch {}
-      }
 
       const { data: profile } = await supabase
         .from('profiles')
