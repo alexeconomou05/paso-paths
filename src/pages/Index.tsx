@@ -257,6 +257,7 @@ const Index = () => {
       )}
 
       {/* Hero Section */}
+      {activeTab === 'home' && (
       <section className="relative z-10 container mx-auto px-4 py-16 md:py-24">
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 glass-card px-6 py-3 rounded-full mb-8 animate-bounce-in">
@@ -302,8 +303,10 @@ const Index = () => {
           </div>
         </div>
       </section>
+      )}
 
       {/* Features Grid */}
+      {activeTab === 'home' && (
       <section className="relative z-10 container mx-auto px-4 py-16 pb-24">
         <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
           <div className="glass-card p-8 rounded-3xl hover:scale-105 transition-all duration-300 border-l-4 border-primary">
@@ -323,6 +326,7 @@ const Index = () => {
           </div>
         </div>
       </section>
+      )}
 
       {/* Footer */}
       <footer className="relative z-10 glass border-t border-glass-border py-8 mt-auto">
