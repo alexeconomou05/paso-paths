@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import PremiumBanner from "@/components/PremiumBanner";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState<'home' | 'jobs' | 'streak' | 'profile' | 'about'>('home');
   const [searchQuery, setSearchQuery] = useState("");
   const [streak, setStreak] = useState<{ current_streak_day: number; total_points: number } | null>(null);
+  const [isPremium, setIsPremium] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -41,7 +43,7 @@ const Index = () => {
   const loadStreak = async (userId: string) => {
     const { data } = await supabase
       .from('profiles')
-      .select('current_streak_day, total_points')
+      .select('current_streak_day, total_points, is_premium')
       .eq('id', userId)
       .maybeSingle();
     if (data) {
@@ -49,6 +51,7 @@ const Index = () => {
         current_streak_day: data.current_streak_day || 0,
         total_points: data.total_points || 0,
       });
+      setIsPremium(!!data.is_premium);
     }
   };
 
@@ -166,6 +169,9 @@ const Index = () => {
       {/* Search Bar */}
       {activeTab === 'home' && (
       <div className="relative z-10 container mx-auto px-4 pt-6">
+        <div className="max-w-2xl mx-auto mb-4">
+          <PremiumBanner hidden={isPremium} storageKey="premiumBannerDismissed_home" />
+        </div>
         <form onSubmit={handleSearch} className="max-w-2xl mx-auto">
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />

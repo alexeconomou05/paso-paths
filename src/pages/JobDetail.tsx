@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ArrowLeft, MapPin, DollarSign, Building2, Send, ExternalLink, MessageSquare, Search } from "lucide-react";
+import ApplicantCount from "@/components/ApplicantCount";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -313,6 +314,11 @@ const JobDetail = () => {
               </div>
             ) : !hasApplied ? (
               <div className="border-t pt-6">
+                {profile && (
+                  <div className="mb-4">
+                    <ApplicantCount jobId={job.id} isPremium={!!profile.is_premium} />
+                  </div>
+                )}
                 <h3 className="text-xl font-bold mb-4">Apply for This Position</h3>
                 {profile ? (
                   profile.verification_status === 'approved' ? (

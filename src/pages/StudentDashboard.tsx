@@ -10,6 +10,8 @@ import Logo from "@/components/Logo";
 import { useTranslation } from "@/hooks/useTranslation";
 import ProfileCompletion from "@/components/ProfileCompletion";
 import DailyCheckIn from "@/components/DailyCheckIn";
+import PremiumBanner from "@/components/PremiumBanner";
+import { Crown } from "lucide-react";
 
 interface JobPosting {
   id: string;
@@ -161,6 +163,15 @@ const StudentDashboard = () => {
             <Logo className="text-3xl" />
           </div>
           <div className="flex gap-2 items-center">
+            {profile?.is_premium && (
+              <Badge
+                variant="outline"
+                className="bg-gradient-to-r from-primary via-pink-400 to-orange-400 text-white border-foreground/20 flex items-center gap-1 px-3 py-1"
+              >
+                <Crown className="w-4 h-4" />
+                <span className="font-bold text-xs">Premium</span>
+              </Badge>
+            )}
             {streakInfo && streakInfo.current_streak_day > 0 && (
               <Badge 
                 variant="outline" 
@@ -194,6 +205,11 @@ const StudentDashboard = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8">
+        {/* Premium Banner */}
+        <div className="mb-6">
+          <PremiumBanner hidden={!!profile?.is_premium} storageKey="premiumBannerDismissed_dashboard" />
+        </div>
+
         {/* Welcome Section */}
         <div className="mb-8 flex flex-col md:flex-row md:items-start md:justify-between gap-4">
           <div>

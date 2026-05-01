@@ -331,6 +331,7 @@ export type Database = {
           full_name: string
           graduation_year: number | null
           id: string
+          is_premium: boolean
           job_filter_preferences: Json | null
           job_notifications_enabled: boolean | null
           last_checkin_date: string | null
@@ -339,6 +340,7 @@ export type Database = {
           paso_number: string | null
           photo_url: string | null
           preferred_employment_types: string[] | null
+          premium_since: string | null
           strikes_month: string | null
           total_points: number
           university: string | null
@@ -359,6 +361,7 @@ export type Database = {
           full_name: string
           graduation_year?: number | null
           id: string
+          is_premium?: boolean
           job_filter_preferences?: Json | null
           job_notifications_enabled?: boolean | null
           last_checkin_date?: string | null
@@ -367,6 +370,7 @@ export type Database = {
           paso_number?: string | null
           photo_url?: string | null
           preferred_employment_types?: string[] | null
+          premium_since?: string | null
           strikes_month?: string | null
           total_points?: number
           university?: string | null
@@ -387,6 +391,7 @@ export type Database = {
           full_name?: string
           graduation_year?: number | null
           id?: string
+          is_premium?: boolean
           job_filter_preferences?: Json | null
           job_notifications_enabled?: boolean | null
           last_checkin_date?: string | null
@@ -395,6 +400,7 @@ export type Database = {
           paso_number?: string | null
           photo_url?: string | null
           preferred_employment_types?: string[] | null
+          premium_since?: string | null
           strikes_month?: string | null
           total_points?: number
           university?: string | null
@@ -431,6 +437,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_job_applicant_count: { Args: { _job_id: string }; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
