@@ -437,6 +437,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_job_applicant_count: { Args: { _job_id: string }; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
