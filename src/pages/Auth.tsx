@@ -853,93 +853,85 @@ const Auth = () => {
               {userRole === 'employee' ? (
                 // Employee Signup Form
                 <form onSubmit={handleSignup} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-name">Full Name *</Label>
-                    <Input
-                      id="signup-name"
-                      value={signupData.fullName}
-                      onChange={(e) => setSignupData({...signupData, fullName: e.target.value})}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">University Email *</Label>
-                    <Input
-                      id="signup-email"
-                      type="email"
-                      placeholder="your.email@university.gr"
-                      value={signupData.email}
-                      onChange={(e) => setSignupData({...signupData, email: e.target.value})}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password *</Label>
-                    <div className="relative">
+                  {/* Account */}
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Account</h3>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-name">Full Name *</Label>
                       <Input
-                        id="signup-password"
-                        type={showSignupPassword ? "text" : "password"}
-                        value={signupData.password}
-                        onChange={(e) => setSignupData({...signupData, password: e.target.value})}
+                        id="signup-name"
+                        value={signupData.fullName}
+                        onChange={(e) => setSignupData({...signupData, fullName: e.target.value})}
                         required
-                        className="pr-10"
                       />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                        onClick={() => setShowSignupPassword(!showSignupPassword)}
-                      >
-                        {showSignupPassword ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
-                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-email">University Email *</Label>
+                      <Input
+                        id="signup-email"
+                        type="email"
+                        placeholder="your.email@university.gr"
+                        value={signupData.email}
+                        onChange={(e) => setSignupData({...signupData, email: e.target.value})}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-password">Password *</Label>
+                      <div className="relative">
+                        <Input
+                          id="signup-password"
+                          type={showSignupPassword ? "text" : "password"}
+                          value={signupData.password}
+                          onChange={(e) => setSignupData({...signupData, password: e.target.value})}
+                          required
+                          className="pr-10"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                          onClick={() => setShowSignupPassword(!showSignupPassword)}
+                        >
+                          {showSignupPassword ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="university">University</Label>
-                    <Input
-                      id="university"
-                      placeholder="e.g., National and Kapodistrian University of Athens"
-                      value={signupData.university}
-                      onChange={(e) => setSignupData({...signupData, university: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="field">Field of Study</Label>
-                    <Input
-                      id="field"
-                      placeholder="e.g., Computer Science"
-                      value={signupData.fieldOfStudy}
-                      onChange={(e) => setSignupData({...signupData, fieldOfStudy: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="paso">PASO Number</Label>
-                    <Input
-                      id="paso"
-                      placeholder="Your student ID number"
-                      value={signupData.pasoNumber}
-                      onChange={(e) => setSignupData({...signupData, pasoNumber: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="paso-file">PASO Document * (PDF or Image)</Label>
-                    <div className="flex items-center gap-2">
+
+                  {/* Studies */}
+                  <div className="space-y-3 pt-2 border-t border-glass-border">
+                    <h3 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Studies</h3>
+                    <div className="space-y-2">
+                      <Label htmlFor="field">Field of Study *</Label>
                       <Input
-                        id="paso-file"
-                        type="file"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                        onChange={(e) => setPasoFile(e.target.files?.[0] || null)}
+                        id="field"
+                        placeholder="e.g., Computer Science"
+                        value={signupData.fieldOfStudy}
+                        onChange={(e) => setSignupData({...signupData, fieldOfStudy: e.target.value})}
                         required
-                        className="flex-1"
                       />
-                      {pasoFile && (
-                        <Upload className="w-5 h-5 text-green-500" />
-                      )}
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Upload your student ID for verification. This will be reviewed by our team.
-                    </p>
+                    <div className="space-y-2">
+                      <Label htmlFor="paso-file">Student ID Document * (PDF or Image)</Label>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          id="paso-file"
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          onChange={(e) => setPasoFile(e.target.files?.[0] || null)}
+                          required
+                          className="flex-1"
+                        />
+                        {pasoFile && (
+                          <Upload className="w-5 h-5 text-green-500" />
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        For verification only. Reviewed by our team.
+                      </p>
+                    </div>
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading ? (
@@ -955,85 +947,68 @@ const Auth = () => {
               ) : (
                 // Employer Signup Form
                 <form onSubmit={handleEmployerSignup} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="company-name">Company Name *</Label>
-                    <Input
-                      id="company-name"
-                      placeholder="Your company name"
-                      value={employerSignupData.companyName}
-                      onChange={(e) => setEmployerSignupData({...employerSignupData, companyName: e.target.value})}
-                      required
-                    />
+                  {/* Account */}
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Account</h3>
+                    <div className="space-y-2">
+                      <Label htmlFor="employer-email">Company Email *</Label>
+                      <Input
+                        id="employer-email"
+                        type="email"
+                        placeholder="hr@company.com"
+                        value={employerSignupData.email}
+                        onChange={(e) => setEmployerSignupData({...employerSignupData, email: e.target.value})}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="employer-password">Password *</Label>
+                      <Input
+                        id="employer-password"
+                        type="password"
+                        value={employerSignupData.password}
+                        onChange={(e) => setEmployerSignupData({...employerSignupData, password: e.target.value})}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="contact-person">Contact Person *</Label>
+                      <Input
+                        id="contact-person"
+                        placeholder="Full name"
+                        value={employerSignupData.contactPerson}
+                        onChange={(e) => setEmployerSignupData({...employerSignupData, contactPerson: e.target.value})}
+                        required
+                      />
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="vat-number">VAT Number *</Label>
-                    <Input
-                      id="vat-number"
-                      placeholder="e.g. EL123456789"
-                      value={employerSignupData.vatNumber}
-                      onChange={(e) => setEmployerSignupData({...employerSignupData, vatNumber: e.target.value})}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="employer-email">Company Email *</Label>
-                    <Input
-                      id="employer-email"
-                      type="email"
-                      placeholder="hr@company.com"
-                      value={employerSignupData.email}
-                      onChange={(e) => setEmployerSignupData({...employerSignupData, email: e.target.value})}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="employer-password">Password *</Label>
-                    <Input
-                      id="employer-password"
-                      type="password"
-                      value={employerSignupData.password}
-                      onChange={(e) => setEmployerSignupData({...employerSignupData, password: e.target.value})}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="contact-person">Contact Person</Label>
-                    <Input
-                      id="contact-person"
-                      placeholder="Full name of the contact person"
-                      value={employerSignupData.contactPerson}
-                      onChange={(e) => setEmployerSignupData({...employerSignupData, contactPerson: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="+30 210 1234567"
-                      value={employerSignupData.phone}
-                      onChange={(e) => setEmployerSignupData({...employerSignupData, phone: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="company-website">Company Website</Label>
-                    <Input
-                      id="company-website"
-                      type="url"
-                      placeholder="https://www.company.com"
-                      value={employerSignupData.companyWebsite}
-                      onChange={(e) => setEmployerSignupData({...employerSignupData, companyWebsite: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="company-description">Company Description</Label>
-                    <Textarea
-                      id="company-description"
-                      placeholder="Tell us about your company..."
-                      value={employerSignupData.companyDescription}
-                      onChange={(e) => setEmployerSignupData({...employerSignupData, companyDescription: e.target.value})}
-                      rows={3}
-                    />
+
+                  {/* Company */}
+                  <div className="space-y-3 pt-2 border-t border-glass-border">
+                    <h3 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Company</h3>
+                    <div className="space-y-2">
+                      <Label htmlFor="company-name">Company Name *</Label>
+                      <Input
+                        id="company-name"
+                        placeholder="Your company name"
+                        value={employerSignupData.companyName}
+                        onChange={(e) => setEmployerSignupData({...employerSignupData, companyName: e.target.value})}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="vat-number">VAT Number *</Label>
+                      <Input
+                        id="vat-number"
+                        placeholder="e.g. EL123456789"
+                        value={employerSignupData.vatNumber}
+                        onChange={(e) => setEmployerSignupData({...employerSignupData, vatNumber: e.target.value})}
+                        required
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Used to verify your business. Other details can be added later from your profile.
+                      </p>
+                    </div>
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading ? (
