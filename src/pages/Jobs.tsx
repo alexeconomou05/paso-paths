@@ -311,7 +311,7 @@ const Jobs = () => {
       style={summerBg}
     >
       {/* Floating Summer Mode Toggle */}
-      <button
+      {!isGuest && <button
         type="button"
         onClick={() => setSummerMode(v => !v)}
         title={summerMode ? "Exit summer mode" : "Activate summer mode"}
@@ -325,20 +325,38 @@ const Jobs = () => {
       >
         <Sun className={`w-5 h-5 ${summerMode ? '' : 'animate-pulse'}`} />
         <span className="text-sm">{summerMode ? 'Exit Summer Mode' : 'Summer Jobs'}</span>
-      </button>
+      </button>}
       {/* Header */}
       <header className="glass border-b border-glass-border sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div onClick={() => navigate("/")} className="cursor-pointer">
             <Logo className="text-3xl" />
           </div>
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate("/profile")}
-            className="font-semibold"
-          >
-            {t('profile')}
-          </Button>
+          {isGuest ? (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                onClick={() => { localStorage.removeItem('guestMode'); navigate('/auth'); }}
+                className="font-semibold"
+              >
+                Log In
+              </Button>
+              <Button
+                onClick={() => { localStorage.removeItem('guestMode'); navigate('/auth?role=employee'); }}
+                className="bg-cta hover:bg-cta/90 text-cta-foreground font-semibold"
+              >
+                Sign Up
+              </Button>
+            </div>
+          ) : (
+            <Button
+              variant="ghost"
+              onClick={() => navigate("/profile")}
+              className="font-semibold"
+            >
+              {t('profile')}
+            </Button>
+          )}
         </div>
       </header>
 
