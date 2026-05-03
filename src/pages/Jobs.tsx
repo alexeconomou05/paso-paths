@@ -332,13 +332,31 @@ const Jobs = () => {
           <div onClick={() => navigate("/")} className="cursor-pointer">
             <Logo className="text-3xl" />
           </div>
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate("/profile")}
-            className="font-semibold"
-          >
-            {t('profile')}
-          </Button>
+          {isGuest ? (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                onClick={() => { localStorage.removeItem('guestMode'); navigate('/auth'); }}
+                className="font-semibold"
+              >
+                Log In
+              </Button>
+              <Button
+                onClick={() => { localStorage.removeItem('guestMode'); navigate('/auth?role=employee'); }}
+                className="bg-cta hover:bg-cta/90 text-cta-foreground font-semibold"
+              >
+                Sign Up
+              </Button>
+            </div>
+          ) : (
+            <Button
+              variant="ghost"
+              onClick={() => navigate("/profile")}
+              className="font-semibold"
+            >
+              {t('profile')}
+            </Button>
+          )}
         </div>
       </header>
 
