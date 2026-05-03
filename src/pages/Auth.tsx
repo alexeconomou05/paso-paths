@@ -823,6 +823,29 @@ const Auth = () => {
                 >
                   Forgot your password?
                 </Button>
+                <div className="relative my-2">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-glass-border" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-card px-2 text-muted-foreground">or</span>
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    localStorage.setItem('guestMode', 'true');
+                    toast.success("Browsing as guest — limited preview");
+                    navigate('/jobs');
+                  }}
+                >
+                  Continue as Guest
+                </Button>
+                <p className="text-center text-xs text-muted-foreground">
+                  See a few sample jobs without an account
+                </p>
               </form>
             </TabsContent>
 
