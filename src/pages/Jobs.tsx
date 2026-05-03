@@ -472,7 +472,7 @@ const Jobs = () => {
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
-            {filteredJobs.map((job, index) => (
+            {visibleJobs.map((job, index) => (
               <Card
                 key={job.id}
                 className="glass-card p-6 cursor-pointer group hover:scale-105 hover:-rotate-1 transition-all duration-300 animate-slide-up border-l-4 border-primary relative"
