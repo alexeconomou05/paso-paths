@@ -42,12 +42,17 @@ const Jobs = () => {
   const [searchQuery, setSearchQuery] = useState<string>(searchParams.get('search') || "");
   const [summerMode, setSummerMode] = useState<boolean>(searchParams.get('summer') === '1');
   const [filtersLoaded, setFiltersLoaded] = useState(false);
+  const [isGuest, setIsGuest] = useState<boolean>(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchProfile(session.user.id);
+      } else if (localStorage.getItem('guestMode') === 'true') {
+        setIsGuest(true);
+        fetchJobs();
       }
     });
 
@@ -60,6 +65,19 @@ const Jobs = () => {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Track scroll for guest cloud overlay fade-in
+  useEffect(() => {
+    if (!isGuest) return;
+    const onScroll = () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const p = max > 0 ? Math.min(1, window.scrollY / max) : 0;
+      setScrollProgress(p);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [isGuest]);
 
   const fetchProfile = async (userId: string) => {
     const { data, error } = await supabase
@@ -215,12 +233,12 @@ const Jobs = () => {
   const isVerified = profile?.verification_status === "approved";
   const hasCompletedProfile = profile?.field_of_study && profile?.bio;
 
-  if (!user) {
+  if (!user && !isGuest) {
     navigate("/auth");
     return null;
   }
 
-  if (!isVerified || !hasCompletedProfile) {
+  if (user && (!isVerified || !hasCompletedProfile)) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10 flex items-center justify-center p-4">
         <Card className="glass-card p-8 max-w-md text-center">
@@ -279,6 +297,9 @@ const Jobs = () => {
   };
 
   const hasActiveFilters = selectedEmploymentType !== "all" || selectedLocation !== "all" || selectedSalaryRange !== "all";
+
+  // Guest mode shows only first 3 listings as a teaser
+  const visibleJobs = isGuest ? filteredJobs.slice(0, 3) : filteredJobs;
 
   const summerBg = summerMode
     ? { background: 'linear-gradient(135deg, #fef3c7 0%, #fed7aa 35%, #fbcfe8 70%, #bae6fd 100%)' }
