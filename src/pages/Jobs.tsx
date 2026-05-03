@@ -42,12 +42,17 @@ const Jobs = () => {
   const [searchQuery, setSearchQuery] = useState<string>(searchParams.get('search') || "");
   const [summerMode, setSummerMode] = useState<boolean>(searchParams.get('summer') === '1');
   const [filtersLoaded, setFiltersLoaded] = useState(false);
+  const [isGuest, setIsGuest] = useState<boolean>(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchProfile(session.user.id);
+      } else if (localStorage.getItem('guestMode') === 'true') {
+        setIsGuest(true);
+        fetchJobs();
       }
     });
 
@@ -60,6 +65,19 @@ const Jobs = () => {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Track scroll for guest cloud overlay fade-in
+  useEffect(() => {
+    if (!isGuest) return;
+    const onScroll = () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const p = max > 0 ? Math.min(1, window.scrollY / max) : 0;
+      setScrollProgress(p);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [isGuest]);
 
   const fetchProfile = async (userId: string) => {
     const { data, error } = await supabase
@@ -215,12 +233,12 @@ const Jobs = () => {
   const isVerified = profile?.verification_status === "approved";
   const hasCompletedProfile = profile?.field_of_study && profile?.bio;
 
-  if (!user) {
+  if (!user && !isGuest) {
     navigate("/auth");
     return null;
   }
 
-  if (!isVerified || !hasCompletedProfile) {
+  if (user && (!isVerified || !hasCompletedProfile)) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10 flex items-center justify-center p-4">
         <Card className="glass-card p-8 max-w-md text-center">
@@ -279,6 +297,9 @@ const Jobs = () => {
   };
 
   const hasActiveFilters = selectedEmploymentType !== "all" || selectedLocation !== "all" || selectedSalaryRange !== "all";
+
+  // Guest mode shows only first 3 listings as a teaser
+  const visibleJobs = isGuest ? filteredJobs.slice(0, 3) : filteredJobs;
 
   const summerBg = summerMode
     ? { background: 'linear-gradient(135deg, #fef3c7 0%, #fed7aa 35%, #fbcfe8 70%, #bae6fd 100%)' }
@@ -451,7 +472,7 @@ const Jobs = () => {
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
-            {filteredJobs.map((job, index) => (
+            {visibleJobs.map((job, index) => (
               <Card
                 key={job.id}
                 className="glass-card p-6 cursor-pointer group hover:scale-105 hover:-rotate-1 transition-all duration-300 animate-slide-up border-l-4 border-primary relative"
@@ -534,6 +555,61 @@ const Jobs = () => {
               </Button>
             )}
           </div>
+        )}
+
+        {/* Guest mode: filler space + cloud sign-in overlay that fades in on scroll */}
+        {isGuest && (
+          <>
+            <div className="h-[80vh]" aria-hidden="true" />
+            <div
+              className="fixed inset-x-0 bottom-0 z-40 pointer-events-none transition-opacity duration-500"
+              style={{ opacity: scrollProgress }}
+            >
+              {/* Soft cloud gradient */}
+              <div
+                className="h-64 w-full"
+                style={{
+                  background:
+                    'linear-gradient(to top, hsl(var(--background)) 25%, hsl(var(--background) / 0.85) 55%, transparent 100%)',
+                }}
+              />
+              <div
+                className="bg-background/95 backdrop-blur-xl border-t border-glass-border pointer-events-auto"
+                style={{ transform: `translateY(${(1 - scrollProgress) * 30}px)` }}
+              >
+                <div className="container mx-auto px-4 py-8 text-center max-w-2xl">
+                  <div className="text-5xl mb-3">☁️</div>
+                  <h3 className="text-2xl md:text-3xl font-extrabold mb-2 bg-clip-text text-transparent" style={{ backgroundImage: 'var(--gradient-text)' }}>
+                    Want to see more?
+                  </h3>
+                  <p className="text-foreground/70 mb-5">
+                    You're previewing GoHire as a guest. Sign in to unlock all jobs, personalized matches and apply in one click.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <Button
+                      onClick={() => {
+                        localStorage.removeItem('guestMode');
+                        navigate('/auth');
+                      }}
+                      className="bg-cta hover:bg-cta/90 text-cta-foreground font-bold rounded-full px-8"
+                    >
+                      Sign In
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        localStorage.removeItem('guestMode');
+                        navigate('/auth?role=employee');
+                      }}
+                      className="rounded-full px-8"
+                    >
+                      Create Account
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
         )}
       </div>
     </div>
