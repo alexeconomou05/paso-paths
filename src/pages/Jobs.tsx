@@ -556,6 +556,61 @@ const Jobs = () => {
             )}
           </div>
         )}
+
+        {/* Guest mode: filler space + cloud sign-in overlay that fades in on scroll */}
+        {isGuest && (
+          <>
+            <div className="h-[80vh]" aria-hidden="true" />
+            <div
+              className="fixed inset-x-0 bottom-0 z-40 pointer-events-none transition-opacity duration-500"
+              style={{ opacity: scrollProgress }}
+            >
+              {/* Soft cloud gradient */}
+              <div
+                className="h-64 w-full"
+                style={{
+                  background:
+                    'linear-gradient(to top, hsl(var(--background)) 25%, hsl(var(--background) / 0.85) 55%, transparent 100%)',
+                }}
+              />
+              <div
+                className="bg-background/95 backdrop-blur-xl border-t border-glass-border pointer-events-auto"
+                style={{ transform: `translateY(${(1 - scrollProgress) * 30}px)` }}
+              >
+                <div className="container mx-auto px-4 py-8 text-center max-w-2xl">
+                  <div className="text-5xl mb-3">☁️</div>
+                  <h3 className="text-2xl md:text-3xl font-extrabold mb-2 bg-clip-text text-transparent" style={{ backgroundImage: 'var(--gradient-text)' }}>
+                    Want to see more?
+                  </h3>
+                  <p className="text-foreground/70 mb-5">
+                    You're previewing GoHire as a guest. Sign in to unlock all jobs, personalized matches and apply in one click.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <Button
+                      onClick={() => {
+                        localStorage.removeItem('guestMode');
+                        navigate('/auth');
+                      }}
+                      className="bg-cta hover:bg-cta/90 text-cta-foreground font-bold rounded-full px-8"
+                    >
+                      Sign In
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        localStorage.removeItem('guestMode');
+                        navigate('/auth?role=employee');
+                      }}
+                      className="rounded-full px-8"
+                    >
+                      Create Account
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
