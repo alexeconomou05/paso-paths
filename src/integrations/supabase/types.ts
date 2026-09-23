@@ -238,6 +238,48 @@ export type Database = {
         }
         Relationships: []
       }
+      job_import_runs: {
+        Row: {
+          error: string | null
+          expired: number
+          finished_at: string | null
+          found: number
+          id: string
+          inserted: number
+          source: string
+          started_at: string
+          status: string
+          trigger: string
+          updated: number
+        }
+        Insert: {
+          error?: string | null
+          expired?: number
+          finished_at?: string | null
+          found?: number
+          id?: string
+          inserted?: number
+          source: string
+          started_at?: string
+          status?: string
+          trigger?: string
+          updated?: number
+        }
+        Update: {
+          error?: string | null
+          expired?: number
+          finished_at?: string | null
+          found?: number
+          id?: string
+          inserted?: number
+          source?: string
+          started_at?: string
+          status?: string
+          trigger?: string
+          updated?: number
+        }
+        Relationships: []
+      }
       job_notifications: {
         Row: {
           id: string
@@ -261,51 +303,69 @@ export type Database = {
       }
       job_postings: {
         Row: {
+          content_hash: string | null
           created_at: string
           employer_email: string
           employer_id: string | null
           employer_name: string
           employment_type: Database["public"]["Enums"]["employment_type"]
+          expires_at: string | null
           external_url: string | null
           id: string
           is_active: boolean | null
           job_description: string
           job_title: string
+          last_seen_at: string | null
           location: string | null
+          posted_at: string | null
           requirements: string | null
           salary_range: string | null
+          source: string
+          source_job_id: string | null
           updated_at: string
         }
         Insert: {
+          content_hash?: string | null
           created_at?: string
           employer_email: string
           employer_id?: string | null
           employer_name: string
           employment_type: Database["public"]["Enums"]["employment_type"]
+          expires_at?: string | null
           external_url?: string | null
           id?: string
           is_active?: boolean | null
           job_description: string
           job_title: string
+          last_seen_at?: string | null
           location?: string | null
+          posted_at?: string | null
           requirements?: string | null
           salary_range?: string | null
+          source?: string
+          source_job_id?: string | null
           updated_at?: string
         }
         Update: {
+          content_hash?: string | null
           created_at?: string
           employer_email?: string
           employer_id?: string | null
           employer_name?: string
           employment_type?: Database["public"]["Enums"]["employment_type"]
+          expires_at?: string | null
           external_url?: string | null
           id?: string
           is_active?: boolean | null
           job_description?: string
           job_title?: string
+          last_seen_at?: string | null
           location?: string | null
+          posted_at?: string | null
           requirements?: string | null
           salary_range?: string | null
+          source?: string
+          source_job_id?: string | null
           updated_at?: string
         }
         Relationships: [
