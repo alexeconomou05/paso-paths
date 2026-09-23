@@ -27,6 +27,7 @@ import {
   Globe
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import AdminImportTools from "@/components/AdminImportTools";
 
 const COMMON_SEARCH_QUERIES = [
   'σερβιτόρος',
@@ -65,7 +66,8 @@ const AdminJobs = () => {
   const [customQuery, setCustomQuery] = useState('');
   const [sources, setSources] = useState({
     'xe.gr': true,
-    'kariera.gr': true
+    'kariera.gr': false,
+    'skywalker.gr': false
   });
   const [importResult, setImportResult] = useState<{
     scraped: number;
@@ -275,14 +277,18 @@ const AdminJobs = () => {
 
       <main className="container mx-auto px-4 py-8 max-w-3xl">
         <Tabs defaultValue="import" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="import" className="gap-2">
               <Download className="w-4 h-4" />
-              Auto Import Jobs
+              Auto Import
             </TabsTrigger>
             <TabsTrigger value="manual" className="gap-2">
               <ExternalLink className="w-4 h-4" />
               Add Manually
+            </TabsTrigger>
+            <TabsTrigger value="history" className="gap-2">
+              <FileText className="w-4 h-4" />
+              CSV & History
             </TabsTrigger>
           </TabsList>
 
@@ -579,6 +585,10 @@ const AdminJobs = () => {
             </form>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="history">
+            <AdminImportTools />
           </TabsContent>
         </Tabs>
       </main>
